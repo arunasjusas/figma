@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { AppLayout } from './components/layout/AppLayout';
+import { ToastContainer } from './components/ui/Toast';
 
 // Auth pages
 import LoginPage from './features/auth/pages/LoginPage';
@@ -53,6 +54,7 @@ function LoadingFallback() {
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
