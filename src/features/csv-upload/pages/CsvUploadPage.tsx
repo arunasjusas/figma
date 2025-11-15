@@ -254,6 +254,25 @@ export default function CsvUploadPage() {
           <CardTitle>Failų įkėlimas</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* File Type Selection - Always visible */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pasirinkite failo tipą
+            </label>
+            <select
+              value={fileType}
+              onChange={(e) => setFileType(e.target.value)}
+              className="w-full px-3 py-2 border border-neutral-border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled={importStatus === 'importing'}
+            >
+              <option value="">Pasirinkite...</option>
+              <option value="invoices">Sąskaitos</option>
+              <option value="clients">Klientai</option>
+              <option value="products">Produktai</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">PVZ: Pasirinkite "Sąskaitos" jei importuojate sąskaitų duomenis</p>
+          </div>
+
           <FileUploadArea
             onFilesSelected={handleFilesSelected}
             accept=".csv,.xlsx,.xls"
@@ -281,24 +300,6 @@ export default function CsvUploadPage() {
                     </button>
                   </div>
                 ))}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pasirinkite failo tipą
-                </label>
-                <select
-                  value={fileType}
-                  onChange={(e) => setFileType(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-border rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                  disabled={importStatus === 'importing'}
-                >
-                  <option value="">Pasirinkite...</option>
-                  <option value="invoices">Sąskaitos</option>
-                  <option value="clients">Klientai</option>
-                  <option value="products">Produktai</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">PVZ: Pasirinkite "Sąskaitos" jei importuojate sąskaitų duomenis</p>
               </div>
 
               <div className="flex gap-3">
