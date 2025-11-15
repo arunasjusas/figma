@@ -28,9 +28,13 @@ export default function CsvUploadPage() {
   const [importProgress, setImportProgress] = useState(0);
   const [importStatus, setImportStatus] = useState<'idle' | 'importing' | 'success' | 'error'>('idle');
   const [importedCount, setImportedCount] = useState(0);
+  const [skippedCount, setSkippedCount] = useState(0);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
+  const [duplicateInvoices, setDuplicateInvoices] = useState<string[]>([]);
+  const [newInvoices, setNewInvoices] = useState<string[]>([]);
 
   const addInvoice = useInvoiceStore((state) => state.addInvoice);
+  const allInvoices = useInvoiceStore((state) => state.invoices);
   const clients = useClientStore((state) => state.clients);
   const addClient = useClientStore((state) => state.addClient);
   const addToast = useToastStore((state) => state.addToast);
@@ -77,10 +81,16 @@ export default function CsvUploadPage() {
     setImportStatus('importing');
     setImportProgress(0);
     setErrorMessages([]);
+    setDuplicateInvoices([]);
+    setNewInvoices([]);
+    setSkippedCount(0);
 
     try {
       let totalImported = 0;
+      let totalSkipped = 0;
       const allErrors: string[] = [];
+      const duplicates: string[] = [];
+      const newOnes: string[] = [];
 
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
@@ -119,12 +129,24 @@ export default function CsvUploadPage() {
             }
           });
           
-          // Add all invoices
+          // Check for duplicates and add only new invoices
           result.data.forEach((invoiceData) => {
-            addInvoice(invoiceData);
+            // Check if invoice with same number already exists
+            const isDuplicate = allInvoices.some(
+              (existingInv) => existingInv.number.toLowerCase() === invoiceData.number.toLowerCase()
+            );
+            
+            if (isDuplicate) {
+              // Skip duplicate
+              totalSkipped++;
+              duplicates.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
+            } else {
+              // Add new invoice
+              addInvoice(invoiceData);
+              totalImported++;
+              newOnes.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
+            }
           });
-          
-          totalImported += result.successCount;
         }
 
         if (result.errors.length > 0) {
@@ -136,14 +158,27 @@ export default function CsvUploadPage() {
       }
 
       setImportedCount(totalImported);
+      setSkippedCount(totalSkipped);
       setErrorMessages(allErrors);
+      setDuplicateInvoices(duplicates);
+      setNewInvoices(newOnes);
 
-      if (totalImported > 0) {
+      if (totalImported > 0 || totalSkipped > 0) {
         setImportStatus('success');
+        
+        let message = '';
+        if (totalImported > 0 && totalSkipped > 0) {
+          message = `Importuota ${totalImported} naujų sąskaitų. Praleista ${totalSkipped} dublikatų.`;
+        } else if (totalImported > 0) {
+          message = `Sėkmingai importuota ${totalImported} sąskaitų`;
+        } else {
+          message = `Visos sąskaitos (${totalSkipped}) jau egzistuoja sistemoje`;
+        }
+        
         addToast({
           type: 'success',
-          title: 'Įkėlimas sėkmingas',
-          message: `Sėkmingai importuota ${totalImported} sąskaitų`,
+          title: 'Įkėlimas baigtas',
+          message,
         });
       } else {
         setImportStatus('error');
@@ -316,14 +351,53 @@ export default function CsvUploadPage() {
             <div className="flex items-start gap-4">
               <CheckCircle className="w-6 h-6 text-status-paid flex-shrink-0 mt-1" />
               <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">Importas sėkmingas!</h3>
-                <p className="text-sm text-gray-600 mb-2">
-                  Sėkmingai importuota {importedCount} sąskaitų į sistemą. ✓
-                </p>
-                {errorMessages.length > 0 && (
+                <h3 className="font-semibold text-lg mb-1">Importas baigtas!</h3>
+                
+                {/* Summary */}
+                <div className="text-sm text-gray-600 mb-3 space-y-1">
+                  {importedCount > 0 && (
+                    <p>✓ Sėkmingai importuota <strong>{importedCount}</strong> naujų sąskaitų</p>
+                  )}
+                  {skippedCount > 0 && (
+                    <p>⚠ Praleista <strong>{skippedCount}</strong> dublikatų (jau egzistuoja sistemoje)</p>
+                  )}
+                </div>
+
+                {/* New Invoices */}
+                {newInvoices.length > 0 && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
+                    <p className="text-sm font-medium text-green-900 mb-2">Importuotos naujos sąskaitos:</p>
+                    <ul className="text-xs text-green-800 space-y-1 max-h-40 overflow-y-auto">
+                      {newInvoices.slice(0, 10).map((invoice, i) => (
+                        <li key={i}>✓ {invoice}</li>
+                      ))}
+                      {newInvoices.length > 10 && (
+                        <li className="font-medium">+ dar {newInvoices.length - 10} sąskaitų...</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Duplicate Invoices */}
+                {duplicateInvoices.length > 0 && (
                   <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                    <p className="text-sm font-medium text-yellow-900 mb-1">Įspėjimai:</p>
-                    <ul className="text-xs text-yellow-800 space-y-1">
+                    <p className="text-sm font-medium text-yellow-900 mb-2">Praleistos sąskaitos (dublikatai):</p>
+                    <ul className="text-xs text-yellow-800 space-y-1 max-h-40 overflow-y-auto">
+                      {duplicateInvoices.slice(0, 10).map((invoice, i) => (
+                        <li key={i}>⚠ {invoice}</li>
+                      ))}
+                      {duplicateInvoices.length > 10 && (
+                        <li className="font-medium">+ dar {duplicateInvoices.length - 10} dublikatų...</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Errors */}
+                {errorMessages.length > 0 && (
+                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded">
+                    <p className="text-sm font-medium text-red-900 mb-1">Klaidos:</p>
+                    <ul className="text-xs text-red-800 space-y-1">
                       {errorMessages.slice(0, 5).map((error, i) => (
                         <li key={i}>• {error}</li>
                       ))}
@@ -333,6 +407,7 @@ export default function CsvUploadPage() {
                     </ul>
                   </div>
                 )}
+
                 <div className="mt-4">
                   <Button
                     variant="outline"
@@ -342,7 +417,10 @@ export default function CsvUploadPage() {
                       setFileType('');
                       setImportProgress(0);
                       setImportedCount(0);
+                      setSkippedCount(0);
                       setErrorMessages([]);
+                      setDuplicateInvoices([]);
+                      setNewInvoices([]);
                     }}
                   >
                     Įkelti kitą failą
