@@ -3,17 +3,19 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { InvoiceStatusPill } from '@/components/shared/InvoiceStatusPill';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { mockInvoices } from '@/lib/mockData';
+import { useInvoiceStore } from '@/store/invoiceStore';
 import { Download, Send, ArrowLeft, Edit } from 'lucide-react';
 import { useState } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * Invoice detail page
+ * Now uses the invoice store to show both mock and newly created invoices
  */
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const invoice = mockInvoices.find(inv => inv.id === id);
+  const invoices = useInvoiceStore((state) => state.invoices);
+  const invoice = invoices.find(inv => inv.id === id);
   
   usePageTitle(invoice ? `Sąskaita ${invoice.number}` : 'Sąskaita');
   const [aiMessageSubject, setAiMessageSubject] = useState('Priminimas dėl sąskaitos');
