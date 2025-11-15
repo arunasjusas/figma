@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, Download, X } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { parseCSVFile, generateSampleCSV } from '@/lib/csvParser';
 import { useInvoiceStore } from '@/store/invoiceStore';
+import { useClientStore } from '@/store/clientStore';
 import { useToastStore } from '@/components/ui/Toast';
 
 interface UploadedFile {
@@ -30,6 +31,8 @@ export default function CsvUploadPage() {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const addInvoice = useInvoiceStore((state) => state.addInvoice);
+  const clients = useClientStore((state) => state.clients);
+  const addClient = useClientStore((state) => state.addClient);
   const addToast = useToastStore((state) => state.addToast);
 
   const handleFilesSelected = (files: Array<{ name: string; type: string; size: number }>) => {
@@ -89,8 +92,23 @@ export default function CsvUploadPage() {
         const result = await parseCSVFile(file.file);
 
         if (result.success && result.data.length > 0) {
-          // Import invoices to store
+          // Import invoices to store and add new clients if they don't exist
           result.data.forEach((invoiceData) => {
+            // Check if client exists, if not add them
+            const clientExists = clients.some(
+              (c) => c.name.toLowerCase() === invoiceData.client.toLowerCase()
+            );
+            
+            if (!clientExists) {
+              // Add new client from invoice data
+              addClient({
+                name: invoiceData.client,
+                email: '', // CSV doesn't have email, can be added later
+                phone: '', // CSV doesn't have phone, can be added later
+              });
+            }
+            
+            // Add invoice
             addInvoice(invoiceData);
           });
           totalImported += result.successCount;
