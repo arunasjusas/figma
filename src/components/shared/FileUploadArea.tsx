@@ -11,7 +11,7 @@ interface UploadedFile {
 }
 
 interface FileUploadAreaProps {
-  onFilesSelected: (files: UploadedFile[]) => void;
+  onFilesSelected: (files: FileList | File[]) => void;
   accept?: string;
   multiple?: boolean;
 }
@@ -42,27 +42,29 @@ export function FileUploadArea({
     e.preventDefault();
     setIsDragging(false);
 
-    const droppedFiles = Array.from(e.dataTransfer.files).map(file => ({
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    const fileMetadata = droppedFiles.map(file => ({
       name: file.name,
       type: file.type,
       size: file.size,
     }));
 
-    setFiles(prev => [...prev, ...droppedFiles]);
+    setFiles(prev => [...prev, ...fileMetadata]);
     onFilesSelected(droppedFiles);
   }, [onFilesSelected]);
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
 
-    const selectedFiles = Array.from(e.target.files).map(file => ({
+    const selectedFiles = Array.from(e.target.files);
+    const fileMetadata = selectedFiles.map(file => ({
       name: file.name,
       type: file.type,
       size: file.size,
     }));
 
-    setFiles(prev => [...prev, ...selectedFiles]);
-    onFilesSelected(selectedFiles);
+    setFiles(prev => [...prev, ...fileMetadata]);
+    onFilesSelected(e.target.files);
   }, [onFilesSelected]);
 
   const handleButtonClick = useCallback(() => {

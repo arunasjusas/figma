@@ -39,18 +39,15 @@ export default function CsvUploadPage() {
   const addClient = useClientStore((state) => state.addClient);
   const addToast = useToastStore((state) => state.addToast);
 
-  const handleFilesSelected = (files: Array<{ name: string; type: string; size: number }>) => {
-    // Store actual File objects
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    if (fileInput && fileInput.files) {
-      const uploadedFiles: UploadedFile[] = Array.from(fileInput.files).map((file, index) => ({
-        name: files[index]?.name || file.name,
-        type: files[index]?.type || file.type,
-        size: files[index]?.size || file.size,
-        file: file,
-      }));
-      setSelectedFiles(uploadedFiles);
-    }
+  const handleFilesSelected = (fileList: FileList | File[]) => {
+    // Convert FileList or File[] to our UploadedFile format
+    const uploadedFiles: UploadedFile[] = Array.from(fileList).map((file) => ({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      file: file,
+    }));
+    setSelectedFiles(uploadedFiles);
     setImportStatus('idle');
     setErrorMessages([]);
   };
