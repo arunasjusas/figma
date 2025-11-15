@@ -2,7 +2,7 @@ import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { colors } from '@/lib/design-tokens';
 
 interface LineChartProps {
-  data: Array<Record<string, string | number>>;
+  data: Array<Record<string, string | number> & { [key: string]: string | number }>;
   lines: Array<{
     dataKey: string;
     name: string;

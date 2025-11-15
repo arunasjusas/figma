@@ -143,7 +143,7 @@ export const mockRecentActions: RecentAction[] = [
 ];
 
 // Mock chart data
-export const mockChartData: ChartDataPoint[] = getAllMonthNames().map((month, index) => ({
+export const mockChartData: ChartDataPoint[] = getAllMonthNames().map((month) => ({
   month,
   paid: Math.floor(Math.random() * 15) + 5,
   unpaid: Math.floor(Math.random() * 8) + 2,

@@ -2,7 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { formatDate } from '@/lib/utils';
 import { mockAIMessages } from '@/lib/mockData';
-import { AI_MESSAGE_STATUS_LABELS } from '@/lib/constants';
+import { AI_MESSAGE_STATUS, AI_MESSAGE_STATUS_LABELS } from '@/lib/constants';
 
 /**
  * Analytics tab component for AI Automation
@@ -61,8 +61,8 @@ export function AnalyticsTab() {
                   <TableCell>{message.client}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      message.status === 'SENT' ? 'bg-blue-100 text-blue-700' :
-                      message.status === 'OPENED' ? 'bg-green-100 text-green-700' :
+                      message.status === AI_MESSAGE_STATUS.SENT ? 'bg-blue-100 text-blue-700' :
+                      message.status === AI_MESSAGE_STATUS.OPENED ? 'bg-green-100 text-green-700' :
                       'bg-red-100 text-red-700'
                     }`}>
                       {AI_MESSAGE_STATUS_LABELS[message.status]}
