@@ -92,25 +92,38 @@ export default function CsvUploadPage() {
         const result = await parseCSVFile(file.file);
 
         if (result.success && result.data.length > 0) {
-          // Import invoices to store and add new clients if they don't exist
+          // Collect unique client names from CSV
+          const uniqueClientNames = new Set<string>();
           result.data.forEach((invoiceData) => {
-            // Check if client exists, if not add them
+            uniqueClientNames.add(invoiceData.client.toLowerCase());
+          });
+          
+          // Add new clients that don't exist yet
+          uniqueClientNames.forEach((clientNameLower) => {
             const clientExists = clients.some(
-              (c) => c.name.toLowerCase() === invoiceData.client.toLowerCase()
+              (c) => c.name.toLowerCase() === clientNameLower
             );
             
             if (!clientExists) {
+              // Find the original case-sensitive name from the data
+              const originalName = result.data.find(
+                (inv) => inv.client.toLowerCase() === clientNameLower
+              )?.client || '';
+              
               // Add new client from invoice data
               addClient({
-                name: invoiceData.client,
+                name: originalName,
                 email: '', // CSV doesn't have email, can be added later
                 phone: '', // CSV doesn't have phone, can be added later
               });
             }
-            
-            // Add invoice
+          });
+          
+          // Add all invoices
+          result.data.forEach((invoiceData) => {
             addInvoice(invoiceData);
           });
+          
           totalImported += result.successCount;
         }
 

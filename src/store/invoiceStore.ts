@@ -42,7 +42,7 @@ export const useInvoiceStore = create<InvoiceStore>()(
   addInvoice: (invoice) => {
     const newInvoice: Invoice = {
       ...invoice,
-      id: `invoice-${Date.now()}`,
+      id: `invoice-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       deleted: false,
     };
     set((state) => ({
