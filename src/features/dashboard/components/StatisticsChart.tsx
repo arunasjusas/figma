@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { LineChart } from '@/components/charts/LineChart';
 import { colors } from '@/lib/design-tokens';
-import { mockChartData, type ChartDataPoint } from '@/lib/mockData';
+import { mockChartData } from '@/lib/mockData';
 
 /**
  * Statistics chart component for dashboard

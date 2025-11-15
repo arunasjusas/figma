@@ -41,14 +41,14 @@ export const WEEKDAYS = [
 ] as const;
 
 export const AI_MESSAGE_STATUS = {
-  SENT: 'sent',
-  OPENED: 'opened',
-  NOT_DELIVERED: 'not_delivered',
+  SENT: 'SENT',
+  OPENED: 'OPENED',
+  NOT_DELIVERED: 'NOT_DELIVERED',
 } as const;
 
 export const AI_MESSAGE_STATUS_LABELS = {
-  [AI_MESSAGE_STATUS.SENT]: 'Išsiųsta',
-  [AI_MESSAGE_STATUS.OPENED]: 'Atidaryta',
-  [AI_MESSAGE_STATUS.NOT_DELIVERED]: 'Nepristatyta',
+  SENT: 'Išsiųsta',
+  OPENED: 'Atidaryta',
+  NOT_DELIVERED: 'Nepristatyta',
 } as const;
 

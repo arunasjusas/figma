@@ -32,6 +32,7 @@ export interface ChartDataPoint {
   paid: number;
   unpaid: number;
   pending: number;
+  [key: string]: string | number;
 }
 
 export interface AIMessage {
