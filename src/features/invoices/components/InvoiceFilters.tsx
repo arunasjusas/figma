@@ -1,24 +1,34 @@
-import { useState } from 'react';
 import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { Search } from 'lucide-react';
+import { Select } from '@/components/ui/Select';
+import { useInvoiceFilterStore } from '../store/invoiceFilterStore';
 
 /**
  * Invoice filters component
+ * Filters invoices by amount range, number, client, and status
  */
 export function InvoiceFilters() {
-  const [amountFrom, setAmountFrom] = useState('');
-  const [amountTo, setAmountTo] = useState('');
-  const [searchNumber, setSearchNumber] = useState('');
-  const [searchClient, setSearchClient] = useState('');
+  const {
+    amountFrom,
+    amountTo,
+    searchNumber,
+    searchClient,
+    status,
+    setAmountFrom,
+    setAmountTo,
+    setSearchNumber,
+    setSearchClient,
+    setStatus,
+  } = useInvoiceFilterStore();
 
-  const handleFilter = () => {
-    // Mock filter action
-    console.log('Filtering:', { amountFrom, amountTo, searchNumber, searchClient });
-  };
+  const statusOptions = [
+    { value: '', label: 'Visi statusai' },
+    { value: 'PAID', label: 'Apmokėta' },
+    { value: 'UNPAID', label: 'Neapmokėta' },
+    { value: 'PENDING', label: 'Terminas nepasibaigęs' },
+  ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       <Input
         placeholder="Suma nuo €"
         type="number"
@@ -36,18 +46,17 @@ export function InvoiceFilters() {
         value={searchNumber}
         onChange={(e) => setSearchNumber(e.target.value)}
       />
-      <div className="flex gap-2">
-        <Input
-          placeholder="Paieška pagal klientą"
-          value={searchClient}
-          onChange={(e) => setSearchClient(e.target.value)}
-          className="flex-1"
-        />
-        <Button variant="primary" onClick={handleFilter}>
-          <Search className="w-4 h-4 md:mr-2" />
-          <span className="hidden md:inline">Filtruoti</span>
-        </Button>
-      </div>
+      <Input
+        placeholder="Paieška pagal klientą"
+        value={searchClient}
+        onChange={(e) => setSearchClient(e.target.value)}
+      />
+      <Select
+        value={status}
+        onChange={(value) => setStatus(value as any)}
+        options={statusOptions}
+        placeholder="Filtruoti pagal statusą"
+      />
     </div>
   );
 }

@@ -1,18 +1,19 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { InvoiceStatusPill } from '@/components/shared/InvoiceStatusPill';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useInvoiceStore } from '@/store/invoiceStore';
+import { useInvoiceFilterStore } from '../store/invoiceFilterStore';
 import { Card } from '@/components/ui/Card';
 import { Trash2 } from 'lucide-react';
 
 /**
  * Invoices table component
  * Responsive: table on desktop, cards on mobile
- * Shows only active (non-deleted) invoices
+ * Shows only active (non-deleted) invoices with applied filters
  */
 export function InvoicesTable() {
   const isMobile = useIsMobile();
@@ -20,7 +21,43 @@ export function InvoicesTable() {
   const deleteInvoice = useInvoiceStore((state) => state.deleteInvoice);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const invoices = getActiveInvoices();
+  const { amountFrom, amountTo, searchNumber, searchClient, status } = useInvoiceFilterStore();
+
+  // Apply filters to invoices
+  const invoices = useMemo(() => {
+    let filtered = getActiveInvoices();
+
+    // Filter by amount range
+    if (amountFrom) {
+      const minAmount = parseFloat(amountFrom);
+      filtered = filtered.filter((inv) => inv.amount >= minAmount);
+    }
+    if (amountTo) {
+      const maxAmount = parseFloat(amountTo);
+      filtered = filtered.filter((inv) => inv.amount <= maxAmount);
+    }
+
+    // Filter by invoice number
+    if (searchNumber) {
+      filtered = filtered.filter((inv) =>
+        inv.number.toLowerCase().includes(searchNumber.toLowerCase())
+      );
+    }
+
+    // Filter by client name
+    if (searchClient) {
+      filtered = filtered.filter((inv) =>
+        inv.client.toLowerCase().includes(searchClient.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    if (status) {
+      filtered = filtered.filter((inv) => inv.status === status);
+    }
+
+    return filtered;
+  }, [getActiveInvoices, amountFrom, amountTo, searchNumber, searchClient, status]);
 
   const handleDelete = (id: string, invoiceNumber: string) => {
     if (window.confirm(`Ar tikrai norite ištrinti sąskaitą ${invoiceNumber}?`)) {
