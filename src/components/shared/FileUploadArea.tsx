@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { Upload, X } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -26,6 +26,7 @@ export function FileUploadArea({
 }: FileUploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<UploadedFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -64,6 +65,10 @@ export function FileUploadArea({
     onFilesSelected(selectedFiles);
   }, [onFilesSelected]);
 
+  const handleButtonClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
   const removeFile = useCallback((index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   }, []);
@@ -90,18 +95,22 @@ export function FileUploadArea({
           <Upload className="w-12 h-12 text-gray-400 mb-4" />
           <p className="text-sm text-gray-600 mb-2">Įtempkite failą čia</p>
           <p className="text-xs text-gray-500 mb-4">arba</p>
-          <label>
-            <input
-              type="file"
-              className="hidden"
-              accept={accept}
-              multiple={multiple}
-              onChange={handleFileInput}
-            />
-            <Button type="button" variant="primary" size="md" onClick={() => {}}>
-              Pasirinkti failą
-            </Button>
-          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept={accept}
+            multiple={multiple}
+            onChange={handleFileInput}
+          />
+          <Button 
+            type="button" 
+            variant="primary" 
+            size="md" 
+            onClick={handleButtonClick}
+          >
+            Pasirinkti failą
+          </Button>
         </div>
       </Card>
 
@@ -131,4 +140,3 @@ export function FileUploadArea({
     </div>
   );
 }
-
