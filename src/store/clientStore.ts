@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface Client {
   id: string;
@@ -73,11 +74,29 @@ const mockClients: Client[] = [
 ];
 
 /**
- * Client store using Zustand
+ * Get initial clients from localStorage or use mock data
+ */
+const getInitialClients = (): Client[] => {
+  try {
+    const stored = localStorage.getItem('client-storage');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.state?.clients || mockClients;
+    }
+  } catch (error) {
+    console.error('Failed to load clients from localStorage:', error);
+  }
+  return mockClients;
+};
+
+/**
+ * Client store using Zustand with localStorage persistence
  * Manages client state and operations
  */
-export const useClientStore = create<ClientStore>((set, get) => ({
-  clients: mockClients,
+export const useClientStore = create<ClientStore>()(
+  persist(
+    (set, get) => ({
+      clients: getInitialClients(),
 
   addClient: (client) => {
     const newClient: Client = {
@@ -107,5 +126,11 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   getClientById: (id) => {
     return get().clients.find((client) => client.id === id);
   },
-}));
+    }),
+    {
+      name: 'client-storage', // localStorage key
+      version: 1,
+    }
+  )
+);
 
