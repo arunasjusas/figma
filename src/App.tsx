@@ -15,6 +15,7 @@ const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPag
 const InvoicesListPage = lazy(() => import('./features/invoices/pages/InvoicesListPage'));
 const InvoiceDetailPage = lazy(() => import('./features/invoices/pages/InvoiceDetailPage'));
 const NewInvoicePage = lazy(() => import('./features/invoices/pages/NewInvoicePage'));
+const RecycleBinPage = lazy(() => import('./features/invoices/pages/RecycleBinPage'));
 const CsvUploadPage = lazy(() => import('./features/csv-upload/pages/CsvUploadPage'));
 const AiAutomationPage = lazy(() => import('./features/ai-automation/pages/AiAutomationPage'));
 const SettingsPage = lazy(() => import('./features/settings/pages/SettingsPage'));
@@ -98,6 +99,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingFallback />}>
                 <InvoiceDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="recycle-bin"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <RecycleBinPage />
               </Suspense>
             }
           />

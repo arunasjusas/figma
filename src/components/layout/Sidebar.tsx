@@ -13,7 +13,8 @@ import {
   Users,
   Shield,
   FileCheck,
-  LogOut
+  LogOut,
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
@@ -45,6 +46,7 @@ export function Sidebar() {
         { label: 'Sąskaitos', path: '/invoices', icon: <FileText className="w-5 h-5" /> },
         { label: 'Išlaidos', path: '/expenses', icon: <TrendingDown className="w-5 h-5" /> },
         { label: 'CSV Įkėlimas', path: '/csv-upload', icon: <Upload className="w-5 h-5" /> },
+        { label: 'Šiukšliadėžė', path: '/recycle-bin', icon: <Trash2 className="w-5 h-5" /> },
       ],
     },
     {

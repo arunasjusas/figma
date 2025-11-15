@@ -1,10 +1,10 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { InvoiceStatusPill } from '@/components/shared/InvoiceStatusPill';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useInvoiceStore } from '@/store/invoiceStore';
-import { Download, Send, ArrowLeft, Edit } from 'lucide-react';
+import { Download, Send, ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
@@ -14,7 +14,9 @@ import { usePageTitle } from '@/hooks/usePageTitle';
  */
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const invoices = useInvoiceStore((state) => state.invoices);
+  const deleteInvoice = useInvoiceStore((state) => state.deleteInvoice);
   const invoice = invoices.find(inv => inv.id === id);
   
   usePageTitle(invoice ? `Sąskaita ${invoice.number}` : 'Sąskaita');
@@ -22,6 +24,13 @@ export default function InvoiceDetailPage() {
   const [aiMessageBody, setAiMessageBody] = useState(
     'Gerbiamas kliente,\n\nPrimename apie jūsų sąskaitą. Prašome apmokėti iki nurodyto termino.\n\nAčiū už bendradarbiavimą!'
   );
+
+  const handleDelete = () => {
+    if (invoice && window.confirm(`Ar tikrai norite ištrinti sąskaitą ${invoice.number}?`)) {
+      deleteInvoice(invoice.id);
+      navigate('/invoices');
+    }
+  };
 
   if (!invoice) {
     return (
@@ -128,6 +137,14 @@ export default function InvoiceDetailPage() {
             <Button variant="outline">
               <Download className="w-4 h-4 mr-2" />
               Atsisiųsti sąskaitą PDF
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleDelete}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Ištrinti sąskaitą
             </Button>
           </div>
         </CardContent>

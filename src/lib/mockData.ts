@@ -18,6 +18,8 @@ export interface Invoice {
     url: string;
   };
   notes?: string;
+  deleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface RecentAction {

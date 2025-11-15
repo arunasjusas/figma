@@ -6,12 +6,16 @@ interface InvoiceStore {
   addInvoice: (invoice: Omit<Invoice, 'id'>) => void;
   updateInvoice: (id: string, invoice: Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
+  restoreInvoice: (id: string) => void;
+  permanentlyDeleteInvoice: (id: string) => void;
   getInvoiceById: (id: string) => Invoice | undefined;
+  getActiveInvoices: () => Invoice[];
+  getDeletedInvoices: () => Invoice[];
 }
 
 /**
  * Invoice store using Zustand
- * Manages invoice state and operations
+ * Manages invoice state and operations with soft delete support
  */
 export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
   invoices: mockInvoices,
@@ -20,6 +24,7 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
     const newInvoice: Invoice = {
       ...invoice,
       id: `invoice-${Date.now()}`,
+      deleted: false,
     };
     set((state) => ({
       invoices: [newInvoice, ...state.invoices],
@@ -34,7 +39,30 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
     }));
   },
 
+  // Soft delete - mark as deleted
   deleteInvoice: (id) => {
+    set((state) => ({
+      invoices: state.invoices.map((invoice) =>
+        invoice.id === id
+          ? { ...invoice, deleted: true, deletedAt: new Date().toISOString() }
+          : invoice
+      ),
+    }));
+  },
+
+  // Restore deleted invoice
+  restoreInvoice: (id) => {
+    set((state) => ({
+      invoices: state.invoices.map((invoice) =>
+        invoice.id === id
+          ? { ...invoice, deleted: false, deletedAt: undefined }
+          : invoice
+      ),
+    }));
+  },
+
+  // Permanently delete invoice
+  permanentlyDeleteInvoice: (id) => {
     set((state) => ({
       invoices: state.invoices.filter((invoice) => invoice.id !== id),
     }));
@@ -42,6 +70,16 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
 
   getInvoiceById: (id) => {
     return get().invoices.find((invoice) => invoice.id === id);
+  },
+
+  // Get only active (non-deleted) invoices
+  getActiveInvoices: () => {
+    return get().invoices.filter((invoice) => !invoice.deleted);
+  },
+
+  // Get only deleted invoices
+  getDeletedInvoices: () => {
+    return get().invoices.filter((invoice) => invoice.deleted);
   },
 }));
 
