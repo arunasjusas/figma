@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { InvoiceStatusPill } from '@/components/shared/InvoiceStatusPill';
@@ -17,15 +17,15 @@ import { Trash2 } from 'lucide-react';
  */
 export function InvoicesTable() {
   const isMobile = useIsMobile();
-  const getActiveInvoices = useInvoiceStore((state) => state.getActiveInvoices);
+  const allInvoices = useInvoiceStore((state) => state.invoices);
   const deleteInvoice = useInvoiceStore((state) => state.deleteInvoice);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { amountFrom, amountTo, searchNumber, searchClient, status } = useInvoiceFilterStore();
 
   // Apply filters to invoices
   const invoices = useMemo(() => {
-    let filtered = getActiveInvoices();
+    // Get only active (non-deleted) invoices
+    let filtered = allInvoices.filter((inv) => !inv.deleted);
 
     // Filter by amount range
     if (amountFrom) {
@@ -57,15 +57,11 @@ export function InvoicesTable() {
     }
 
     return filtered;
-  }, [getActiveInvoices, amountFrom, amountTo, searchNumber, searchClient, status]);
+  }, [allInvoices, amountFrom, amountTo, searchNumber, searchClient, status]);
 
   const handleDelete = (id: string, invoiceNumber: string) => {
     if (window.confirm(`Ar tikrai norite ištrinti sąskaitą ${invoiceNumber}?`)) {
-      setDeletingId(id);
-      setTimeout(() => {
-        deleteInvoice(id);
-        setDeletingId(null);
-      }, 300);
+      deleteInvoice(id);
     }
   };
 
@@ -94,7 +90,6 @@ export function InvoicesTable() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleDelete(invoice.id, invoice.number)}
-                  disabled={deletingId === invoice.id}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -140,7 +135,6 @@ export function InvoicesTable() {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleDelete(invoice.id, invoice.number)}
-                  disabled={deletingId === invoice.id}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4" />
