@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import { mockInvoices } from '@/lib/mockData';
 import { Download, Send, ArrowLeft, Edit } from 'lucide-react';
 import { useState } from 'react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * Invoice detail page
@@ -13,6 +14,8 @@ import { useState } from 'react';
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const invoice = mockInvoices.find(inv => inv.id === id);
+  
+  usePageTitle(invoice ? `Sąskaita ${invoice.number}` : 'Sąskaita');
   const [aiMessageSubject, setAiMessageSubject] = useState('Priminimas dėl sąskaitos');
   const [aiMessageBody, setAiMessageBody] = useState(
     'Gerbiamas kliente,\n\nPrimename apie jūsų sąskaitą. Prašome apmokėti iki nurodyto termino.\n\nAčiū už bendradarbiavimą!'

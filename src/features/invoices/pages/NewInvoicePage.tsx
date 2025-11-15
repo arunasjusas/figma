@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Card } from '@/components/ui/Card';
 import { useInvoiceStore } from '@/store/invoiceStore';
 import { useClientStore } from '@/store/clientStore';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import type { Invoice } from '@/lib/mockData';
 
 interface InvoiceFormData {
@@ -25,6 +26,8 @@ interface InvoiceFormData {
  * Form to create a new invoice
  */
 export default function NewInvoicePage() {
+  usePageTitle('Nauja sąskaita');
+  
   const navigate = useNavigate();
   const addInvoice = useInvoiceStore((state) => state.addInvoice);
   const clients = useClientStore((state) => state.clients);

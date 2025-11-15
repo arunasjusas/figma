@@ -3,11 +3,12 @@ import { SequencesTab } from '../components/SequencesTab';
 import { TimeConfigTab } from '../components/TimeConfigTab';
 import { AnalyticsTab } from '../components/AnalyticsTab';
 import { cn } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const TABS = [
-  { id: 'sequences', label: 'Sekos' },
-  { id: 'time', label: 'Laikas' },
-  { id: 'analytics', label: 'Analitika' },
+  { id: 'sequences', label: 'Sekos', title: 'AI Sekos' },
+  { id: 'time', label: 'Laikas', title: 'AI Laikas' },
+  { id: 'analytics', label: 'Analitika', title: 'AI Analitika' },
 ] as const;
 
 /**
@@ -16,6 +17,10 @@ const TABS = [
 export default function AiAutomationPage() {
   const { tab } = useParams<{ tab: string }>();
   const navigate = useNavigate();
+  
+  // Set page title based on active tab
+  const activeTab = TABS.find(t => t.id === tab);
+  usePageTitle(activeTab?.title || 'AI Automatizacijos');
 
   // Redirect to sequences tab if no tab specified
   if (!tab || !TABS.find(t => t.id === tab)) {

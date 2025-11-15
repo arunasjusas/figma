@@ -3,12 +3,15 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * Settings page - "Nustatymai"
  * Contains personal info, company info, and password settings
  */
 export default function SettingsPage() {
+  usePageTitle('Nustatymai');
+  
   const user = useAuthStore(state => state.user);
 
   // Personal info state

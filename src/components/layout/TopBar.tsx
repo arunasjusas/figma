@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Plus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/useMediaQuery';
 import { AddClientModal } from '@/components/shared/AddClientModal';
 
 interface TopBarProps {
-  title: string;
+  title?: string;
   onMenuClick?: () => void;
   showActions?: boolean;
 }
@@ -14,12 +14,25 @@ interface TopBarProps {
 /**
  * Top bar component with page title and action buttons
  * Action buttons only show on the Invoices page (/invoices)
+ * Title is dynamically set by each page using usePageTitle hook
  */
-export function TopBar({ title, onMenuClick, showActions = true }: TopBarProps) {
+export function TopBar({ title: defaultTitle = 'Sąskaitų Sistema', onMenuClick, showActions = true }: TopBarProps) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [pageTitle, setPageTitle] = useState(defaultTitle);
+
+  // Listen for page title changes from individual pages
+  useEffect(() => {
+    const handleTitleChange = (event: Event) => {
+      const customEvent = event as CustomEvent<string>;
+      setPageTitle(customEvent.detail);
+    };
+
+    window.addEventListener('page-title-change', handleTitleChange);
+    return () => window.removeEventListener('page-title-change', handleTitleChange);
+  }, []);
 
   // Show action buttons only on the invoices list page
   // To revert: remove this line and the condition below
@@ -46,7 +59,7 @@ export function TopBar({ title, onMenuClick, showActions = true }: TopBarProps) 
                 <Menu className="w-5 h-5" />
               </button>
             )}
-            <h1 className="text-2xl md:text-4xl font-bold text-primary">{title}</h1>
+            <h1 className="text-2xl md:text-4xl font-bold text-primary">{pageTitle}</h1>
           </div>
 
           {/* Changed from showActions to shouldShowActions */}

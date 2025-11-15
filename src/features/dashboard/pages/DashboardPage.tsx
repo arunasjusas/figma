@@ -2,12 +2,15 @@ import { KpiCard } from '@/components/shared/KpiCard';
 import { RecentActionsTable } from '../components/RecentActionsTable';
 import { StatisticsChart } from '../components/StatisticsChart';
 import { formatCurrency } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * Dashboard page - "Peržiūra"
  * Shows KPI cards, recent actions, and statistics chart
  */
 export default function DashboardPage() {
+  usePageTitle('Peržiūra');
+
   return (
     <div className="space-y-6">
       {/* KPI Cards */}

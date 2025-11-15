@@ -3,11 +3,14 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { FileUploadArea } from '@/components/shared/FileUploadArea';
 import { Button } from '@/components/ui/Button';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * CSV Upload page - "CSV Įkėlimas"
  */
 export default function CsvUploadPage() {
+  usePageTitle('CSV Įkėlimas');
+  
   const [selectedFiles, setSelectedFiles] = useState<Array<{ name: string; type: string; size: number }>>([]);
   const [fileType, setFileType] = useState('');
   const [importProgress, setImportProgress] = useState(0);
