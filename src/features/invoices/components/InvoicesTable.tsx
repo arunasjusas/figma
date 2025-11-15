@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { InvoiceStatusPill } from '@/components/shared/InvoiceStatusPill';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useMediaQuery';
-import { mockInvoices } from '@/lib/mockData';
+import { useInvoiceStore } from '@/store/invoiceStore';
 import { Card } from '@/components/ui/Card';
 
 /**
@@ -13,11 +13,12 @@ import { Card } from '@/components/ui/Card';
  */
 export function InvoicesTable() {
   const isMobile = useIsMobile();
+  const invoices = useInvoiceStore((state) => state.invoices);
 
   if (isMobile) {
     return (
       <div className="space-y-4">
-        {mockInvoices.map((invoice) => (
+        {invoices.map((invoice) => (
           <Card key={invoice.id} padding="md">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -56,7 +57,7 @@ export function InvoicesTable() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {mockInvoices.map((invoice) => (
+        {invoices.map((invoice) => (
           <TableRow key={invoice.id}>
             <TableCell className="font-medium">{invoice.number}</TableCell>
             <TableCell>{formatDate(invoice.date)}</TableCell>

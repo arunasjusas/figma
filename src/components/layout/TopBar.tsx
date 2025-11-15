@@ -1,6 +1,9 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Plus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { AddClientModal } from '@/components/shared/AddClientModal';
 
 interface TopBarProps {
   title: string;
@@ -13,39 +16,65 @@ interface TopBarProps {
  */
 export function TopBar({ title, onMenuClick, showActions = true }: TopBarProps) {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+
+  const handleNewInvoice = () => {
+    navigate('/invoices/new');
+  };
+
+  const handleAddClient = () => {
+    setIsClientModalOpen(true);
+  };
 
   return (
-    <header className="sticky top-0 z-10 bg-white border-b border-neutral-border shadow-header">
-      <div className="flex items-center justify-between h-16 px-6">
-        <div className="flex items-center gap-4">
-          {isMobile && (
-            <button
-              onClick={onMenuClick}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-          )}
-          <h1 className="text-2xl md:text-4xl font-bold text-primary">{title}</h1>
-        </div>
-
-        {showActions && (
-          <div className="flex items-center gap-3">
-            <Button variant="primary" size={isMobile ? 'sm' : 'md'}>
-              <Plus className="w-4 h-4 mr-2" />
-              {!isMobile && 'Nauja sąskaita'}
-              {isMobile && 'Sąskaita'}
-            </Button>
-            {!isMobile && (
-              <Button variant="outline" size="md">
-                <UserPlus className="w-4 h-4 mr-2" />
-                Pridėti klientą
-              </Button>
+    <>
+      <header className="sticky top-0 z-10 bg-white border-b border-neutral-border shadow-header">
+        <div className="flex items-center justify-between h-16 px-6">
+          <div className="flex items-center gap-4">
+            {isMobile && (
+              <button
+                onClick={onMenuClick}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
             )}
+            <h1 className="text-2xl md:text-4xl font-bold text-primary">{title}</h1>
           </div>
-        )}
-      </div>
-    </header>
+
+          {showActions && (
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="primary" 
+                size={isMobile ? 'sm' : 'md'}
+                onClick={handleNewInvoice}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {!isMobile && 'Nauja sąskaita'}
+                {isMobile && 'Sąskaita'}
+              </Button>
+              {!isMobile && (
+                <Button 
+                  variant="outline" 
+                  size="md"
+                  onClick={handleAddClient}
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Pridėti klientą
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Add Client Modal */}
+      <AddClientModal 
+        isOpen={isClientModalOpen} 
+        onClose={() => setIsClientModalOpen(false)} 
+      />
+    </>
   );
 }
 

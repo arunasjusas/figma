@@ -4,15 +4,16 @@ import { cn } from '@/lib/utils';
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  fullWidth?: boolean;
 }
 
 /**
  * Input component with label and error support
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, type = 'text', ...props }, ref) => {
+  ({ className, label, error, fullWidth = false, type = 'text', ...props }, ref) => {
     return (
-      <div className="w-full">
+      <div className={fullWidth ? 'w-full' : ''}>
         {label && (
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
             {label}
