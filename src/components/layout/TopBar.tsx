@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Plus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMediaQuery';
@@ -13,11 +13,17 @@ interface TopBarProps {
 
 /**
  * Top bar component with page title and action buttons
+ * Action buttons only show on the Invoices page (/invoices)
  */
 export function TopBar({ title, onMenuClick, showActions = true }: TopBarProps) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+
+  // Show action buttons only on the invoices list page
+  // To revert: remove this line and the condition below
+  const shouldShowActions = showActions && location.pathname === '/invoices';
 
   const handleNewInvoice = () => {
     navigate('/invoices/new');
@@ -43,7 +49,8 @@ export function TopBar({ title, onMenuClick, showActions = true }: TopBarProps) 
             <h1 className="text-2xl md:text-4xl font-bold text-primary">{title}</h1>
           </div>
 
-          {showActions && (
+          {/* Changed from showActions to shouldShowActions */}
+          {shouldShowActions && (
             <div className="flex items-center gap-3">
               <Button 
                 variant="primary" 
