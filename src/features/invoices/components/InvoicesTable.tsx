@@ -79,6 +79,7 @@ export function InvoicesTable() {
                 <p><span className="font-medium">Data:</span> {formatDate(invoice.date)}</p>
                 <p><span className="font-medium">Klientas:</span> {invoice.client}</p>
                 <p><span className="font-medium">Suma:</span> {formatCurrency(invoice.amount)}</p>
+                <p><span className="font-medium">Apmokėjimo terminas:</span> {formatDate(invoice.dueDate)}</p>
               </div>
               <div className="pt-2 flex gap-2">
                 <Link to={`/invoices/${invoice.id}`} className="flex-1">
@@ -110,6 +111,7 @@ export function InvoicesTable() {
           <TableHead>Data</TableHead>
           <TableHead>Klientas</TableHead>
           <TableHead className="text-right">Suma</TableHead>
+          <TableHead>Apmokėjimo terminas</TableHead>
           <TableHead>Statusas</TableHead>
           <TableHead>Veiksmai</TableHead>
         </TableRow>
@@ -121,6 +123,7 @@ export function InvoicesTable() {
             <TableCell>{formatDate(invoice.date)}</TableCell>
             <TableCell>{invoice.client}</TableCell>
             <TableCell className="text-right">{formatCurrency(invoice.amount)}</TableCell>
+            <TableCell>{formatDate(invoice.dueDate)}</TableCell>
             <TableCell>
               <InvoiceStatusPill status={invoice.status} />
             </TableCell>
