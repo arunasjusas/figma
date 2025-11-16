@@ -8,7 +8,7 @@ import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useInvoiceStore } from '@/store/invoiceStore';
 import { useInvoiceFilterStore } from '../store/invoiceFilterStore';
 import { Card } from '@/components/ui/Card';
-import { Trash2, Download, Send, Edit } from 'lucide-react';
+import { Trash2, Download, Send, Edit, Edit2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import type { Invoice } from '@/lib/mockData';
 import { useToastStore } from '@/components/ui/Toast';
@@ -33,6 +33,8 @@ export function InvoicesTable() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [statusChangeInvoice, setStatusChangeInvoice] = useState<Invoice | null>(null);
   const [aiMessageSubject, setAiMessageSubject] = useState('Priminimas dėl sąskaitos');
   const [aiMessageBody, setAiMessageBody] = useState(
     'Gerbiamas kliente,\n\nPrimename apie jūsų sąskaitą. Prašome apmokėti iki nurodyto termino.\n\nAčiū už bendradarbiavimą!'
@@ -143,24 +145,45 @@ export function InvoicesTable() {
     });
   };
 
-  const handleStatusChange = (invoiceId: string, newStatus: keyof typeof INVOICE_STATUS) => {
-    updateInvoice(invoiceId, { status: newStatus });
+  const handleOpenStatusModal = (invoice: Invoice) => {
+    setStatusChangeInvoice(invoice);
+    setIsStatusModalOpen(true);
+  };
+
+  const handleCloseStatusModal = () => {
+    setIsStatusModalOpen(false);
+    setStatusChangeInvoice(null);
+  };
+
+  const handleStatusChange = (newStatus: keyof typeof INVOICE_STATUS) => {
+    if (!statusChangeInvoice) return;
+    
+    // Update the local state for immediate UI feedback
+    setStatusChangeInvoice({ ...statusChangeInvoice, status: newStatus });
+  };
+
+  const handleSaveStatusChange = () => {
+    if (!statusChangeInvoice) return;
+    
+    updateInvoice(statusChangeInvoice.id, { status: statusChangeInvoice.status });
     addToast({
       type: 'success',
       title: 'Statusas atnaujintas',
       message: 'Sąskaitos statusas sėkmingai pakeistas.',
     });
+    handleCloseStatusModal();
   };
 
   const renderModals = () => {
-    if (!selectedInvoice) return null;
-
-    const remainingAmount = selectedInvoice.amount - (selectedInvoice.paidAmount || 0);
-
     return (
       <>
-        {/* Invoice Detail Modal */}
-        <Modal
+        {selectedInvoice && (() => {
+          const remainingAmount = selectedInvoice.amount - (selectedInvoice.paidAmount || 0);
+          
+          return (
+            <>
+              {/* Invoice Detail Modal */}
+              <Modal
           isOpen={isDetailModalOpen}
           onClose={handleCloseDetailModal}
           title="Sąskaitos informacija"
@@ -251,10 +274,10 @@ export function InvoicesTable() {
               </Button>
             </div>
           </div>
-        </Modal>
+              </Modal>
 
-        {/* AI Message Modal */}
-        <Modal
+              {/* AI Message Modal */}
+              <Modal
           isOpen={isAiModalOpen}
           onClose={handleCloseAiModal}
           title="AI Žinutės Peržiūra"
@@ -299,6 +322,57 @@ export function InvoicesTable() {
               </Button>
             </div>
           </div>
+              </Modal>
+            </>
+          );
+        })()}
+
+        {/* Status Change Modal */}
+        <Modal
+          isOpen={isStatusModalOpen}
+          onClose={handleCloseStatusModal}
+          title="Keisti sąskaitos statusą"
+          size="md"
+        >
+          {statusChangeInvoice && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-2">Sąskaita: <span className="font-semibold">{statusChangeInvoice.number}</span></p>
+                <p className="text-sm text-gray-600 mb-4">Klientas: <span className="font-semibold">{statusChangeInvoice.client}</span></p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Pasirinkite naują statusą
+                </label>
+                <Select
+                  value={statusChangeInvoice.status}
+                  onChange={(value) => handleStatusChange(value as keyof typeof INVOICE_STATUS)}
+                  options={[
+                    { value: INVOICE_STATUS.PAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PAID] },
+                    { value: INVOICE_STATUS.UNPAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.UNPAID] },
+                    { value: INVOICE_STATUS.PENDING, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PENDING] },
+                  ]}
+                  fullWidth
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline"
+                  onClick={handleCloseStatusModal}
+                  className="flex-1"
+                >
+                  Atšaukti
+                </Button>
+                <Button 
+                  variant="primary"
+                  onClick={handleSaveStatusChange}
+                  className="flex-1"
+                >
+                  Išsaugoti
+                </Button>
+              </div>
+            </div>
+          )}
         </Modal>
       </>
     );
@@ -313,18 +387,7 @@ export function InvoicesTable() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-lg">{invoice.number}</span>
-                </div>
-                <div>
-                  <Select
-                    value={invoice.status}
-                    onChange={(value) => handleStatusChange(invoice.id, value as keyof typeof INVOICE_STATUS)}
-                    options={[
-                      { value: INVOICE_STATUS.PAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PAID] },
-                      { value: INVOICE_STATUS.UNPAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.UNPAID] },
-                      { value: INVOICE_STATUS.PENDING, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PENDING] },
-                    ]}
-                    fullWidth
-                  />
+                  <InvoiceStatusPill status={invoice.status} />
                 </div>
                 <div className="text-sm text-gray-600">
                   <p><span className="font-medium">Data:</span> {formatDate(invoice.date)}</p>
@@ -340,6 +403,14 @@ export function InvoicesTable() {
                     onClick={() => handleViewDetails(invoice)}
                   >
                     Daugiau
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenStatusModal(invoice)}
+                    title="Keisti statusą"
+                  >
+                    <Edit2 className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="outline"
@@ -382,15 +453,7 @@ export function InvoicesTable() {
               <TableCell className="text-right">{formatCurrency(invoice.amount)}</TableCell>
               <TableCell>{formatDate(invoice.dueDate)}</TableCell>
               <TableCell>
-                <Select
-                  value={invoice.status}
-                  onChange={(value) => handleStatusChange(invoice.id, value as keyof typeof INVOICE_STATUS)}
-                  options={[
-                    { value: INVOICE_STATUS.PAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PAID] },
-                    { value: INVOICE_STATUS.UNPAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.UNPAID] },
-                    { value: INVOICE_STATUS.PENDING, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PENDING] },
-                  ]}
-                />
+                <InvoiceStatusPill status={invoice.status} />
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
@@ -400,6 +463,14 @@ export function InvoicesTable() {
                     onClick={() => handleViewDetails(invoice)}
                   >
                     Daugiau
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleOpenStatusModal(invoice)}
+                    title="Keisti statusą"
+                  >
+                    <Edit2 className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="ghost"
