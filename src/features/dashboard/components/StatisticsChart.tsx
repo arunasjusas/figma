@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { LineChart } from '@/components/charts/LineChart';
-import { colors } from '@/lib/design-tokens';
+import { AreaChart } from '@/components/charts/AreaChart';
 import { useInvoiceStore } from '@/store/invoiceStore';
 
 /**
  * Statistics chart component for dashboard
  * Shows invoice statistics over 12 months with real data
+ * Uses area chart with colors matching the design
  */
 export function StatisticsChart() {
   const getActiveInvoices = useInvoiceStore((state) => state.getActiveInvoices);
@@ -47,21 +47,28 @@ export function StatisticsChart() {
     return months;
   }, [getActiveInvoices]);
 
-  const lines = [
+  // Colors matching the photo: green for paid, blue for unpaid, light blue/purple for pending
+  const areas = [
     {
       dataKey: 'paid',
       name: 'Sumokėtos',
-      color: colors.chart.green, // Green line
+      strokeColor: '#10B981', // Vibrant green
+      fillColor: '#10B981',
+      fillGradientId: 'colorPaid',
     },
     {
       dataKey: 'unpaid',
-      name: 'Pradelstos',
-      color: colors.primary.default, // Blue line
+      name: 'Nesumokėtos',
+      strokeColor: '#0A61C4', // Standard blue
+      fillColor: '#0A61C4',
+      fillGradientId: 'colorUnpaid',
     },
     {
       dataKey: 'pending',
       name: 'Terminas Nepasibaigęs',
-      color: colors.chart.blue, // Light blue line
+      strokeColor: '#664DFF', // Light blue with purplish tint
+      fillColor: '#664DFF',
+      fillGradientId: 'colorPending',
     },
   ];
 
@@ -71,9 +78,9 @@ export function StatisticsChart() {
         <CardTitle>Sąskaitų statistika</CardTitle>
       </CardHeader>
       <CardContent>
-        <LineChart
+        <AreaChart
           data={chartData}
-          lines={lines}
+          areas={areas}
           xAxisKey="month"
           height={300}
         />
