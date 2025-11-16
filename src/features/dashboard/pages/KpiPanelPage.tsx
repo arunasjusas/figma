@@ -123,7 +123,7 @@ export default function KpiPanelPage() {
         />
         <KpiCard
           title="Viršijusios terminą"
-          value={`${kpiData.pastDueCount} vnt.`}
+          value={`${kpiData.pradelstaCount} vnt.`}
         />
         <KpiCard
           title="Vidutinis vėlavimas"
