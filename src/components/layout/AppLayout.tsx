@@ -18,7 +18,7 @@ export function AppLayout({ pageTitle = 'Sąskaitų statistika', showActions = t
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-[#2C3E50]">
+    <div className="min-h-screen bg-[#808080]">
       {/* Desktop Sidebar */}
       {!isMobile && <Sidebar />}
 
