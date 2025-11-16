@@ -37,20 +37,10 @@ function formatDateForPdf(date: string | Date): string {
 
 /**
  * Generate and download invoice as PDF using HTML rendering.
- * We render a styled HTML template and let jsPDF+html2canvas rasterize it.
- * This avoids font encoding issues and preserves Lithuanian characters.
+ * We render a styled HTML template, convert it to canvas with html2canvas,
+ * then add the canvas image to PDF. This preserves Lithuanian characters.
  */
-export function generateInvoicePDF(invoice: Invoice): void {
-  // Create PDF
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
-
-  // Ensure html2canvas is available for jsPDF.html in all bundling modes
-  (window as unknown as { html2canvas?: typeof html2canvas }).html2canvas = html2canvas;
-
+export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
   // Offscreen container for HTML content (A4 ~ 794px width at 96dpi)
   const container = document.createElement('div');
   container.style.position = 'fixed';
@@ -61,6 +51,8 @@ export function generateInvoicePDF(invoice: Invoice): void {
   container.style.padding = '32px';
   container.style.fontFamily = 'system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif';
   container.style.color = '#111827';
+  container.style.fontSize = '14px';
+  container.style.lineHeight = '1.5';
 
   const statusLabel = getStatusLabel(invoice.status);
   const amountWithoutVAT = invoice.amount / 1.21;
@@ -153,23 +145,52 @@ export function generateInvoicePDF(invoice: Invoice): void {
 
   document.body.appendChild(container);
 
-  const filename = `Saskaita_${invoice.number}_${sanitizeText(invoice.client).replace(/\s+/g, '_')}.pdf`;
+  // Wait for fonts and layout to be ready
+  await new Promise(resolve => setTimeout(resolve, 100));
 
-  // Render HTML to PDF; html2canvas is used internally by jsPDF.html
-  // We keep the callback style to preserve a void return type for this function.
-  doc.html(container, {
-    x: 10,
-    y: 10,
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-    },
-    callback: () => {
-      doc.save(filename);
-      document.body.removeChild(container);
-    },
+  // Convert HTML to canvas with html2canvas
+  const canvas = await html2canvas(container, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+    width: 794,
+    height: container.scrollHeight,
+    windowWidth: 794,
+    windowHeight: container.scrollHeight,
   });
+
+  // Remove container from DOM
+  document.body.removeChild(container);
+
+  // Create PDF and add canvas image
+  const imgData = canvas.toDataURL('image/png');
+  const imgWidth = 210; // A4 width in mm
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  // If content is taller than one page, split across pages
+  const pageHeight = 297; // A4 height in mm
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+  heightLeft -= pageHeight;
+
+  while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+    doc.addPage();
+    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+  }
+
+  const filename = `Saskaita_${invoice.number}_${sanitizeText(invoice.client).replace(/\s+/g, '_')}.pdf`;
+  doc.save(filename);
 }
 
 /**

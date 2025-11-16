@@ -97,10 +97,10 @@ export function InvoicesTable() {
     setIsAiModalOpen(false);
   };
 
-  const handleDownloadPDF = (invoice: Invoice) => {
+  const handleDownloadPDF = async (invoice: Invoice) => {
     try {
       // Generate and download PDF
-      generateInvoicePDF(invoice);
+      await generateInvoicePDF(invoice);
       
       // Show success toast
       addToast({
