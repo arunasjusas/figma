@@ -4,9 +4,6 @@ import {
   FileText, 
   Upload, 
   Bot,
-  ListOrdered,
-  Clock,
-  BarChart3,
   HelpCircle,
   Settings,
   Shield,
@@ -44,14 +41,6 @@ export function Sidebar() {
         { label: 'Sąskaitos', path: '/invoices', icon: <FileText className="w-5 h-5" /> },
         { label: 'CSV Įkėlimas', path: '/csv-upload', icon: <Upload className="w-5 h-5" /> },
         { label: 'Šiukšliadėžė', path: '/recycle-bin', icon: <Trash2 className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'AI Automatizacijos',
-      items: [
-        { label: 'Sekos', path: '/ai-automation/sequences', icon: <ListOrdered className="w-5 h-5" />, badge: 'Beta' },
-        { label: 'Laikas', path: '/ai-automation/time', icon: <Clock className="w-5 h-5" />, badge: 'Beta' },
-        { label: 'Analitika', path: '/ai-automation/analytics', icon: <BarChart3 className="w-5 h-5" />, badge: 'Beta' },
       ],
     },
     {

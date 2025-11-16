@@ -19,6 +19,7 @@ const NewInvoicePage = lazy(() => import('./features/invoices/pages/NewInvoicePa
 const RecycleBinPage = lazy(() => import('./features/invoices/pages/RecycleBinPage'));
 const CsvUploadPage = lazy(() => import('./features/csv-upload/pages/CsvUploadPage'));
 const AiAutomationPage = lazy(() => import('./features/ai-automation/pages/AiAutomationPage'));
+const AiHelpPage = lazy(() => import('./features/ai-automation/pages/AiHelpPage'));
 const SettingsPage = lazy(() => import('./features/settings/pages/SettingsPage'));
 
 /**
@@ -139,7 +140,14 @@ function App() {
           
           {/* Placeholder routes for sidebar items */}
           <Route path="expenses" element={<div className="p-6">Išlaidos - Coming Soon</div>} />
-          <Route path="ai-help" element={<div className="p-6">AI Pagalba - Coming Soon</div>} />
+          <Route
+            path="ai-help"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <AiHelpPage />
+              </Suspense>
+            }
+          />
           <Route path="team" element={<div className="p-6">Komanda - Coming Soon</div>} />
           <Route path="help" element={<div className="p-6">Pagalba - Coming Soon</div>} />
           <Route path="privacy" element={<div className="p-6">Privatumo politika - Coming Soon</div>} />
