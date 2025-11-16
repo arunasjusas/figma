@@ -61,90 +61,252 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
   // Format currency and sanitize it
   const formatCurrencySafe = (amount: number) => sanitizeText(formatCurrency(amount));
 
-  container.innerHTML = `
-    <div>
-      <div style="text-align:center; color:#2563eb; font-weight:700; font-size:26px;">
-        Saskaita faktura
-      </div>
-      <div style="text-align:center; color:#6b7280; margin-top:6px;">
-        Nr. ${invoice.number}
-      </div>
-      <div style="height:2px; background:#2563eb; margin:16px 0 8px;"></div>
+  // Helper function to create elements with textContent to avoid HTML escaping
+  const createEl = (tag: string, styles: Record<string, string>, text?: string) => {
+    const el = document.createElement(tag);
+    Object.assign(el.style, styles);
+    if (text !== undefined) el.textContent = text;
+    return el;
+  };
 
-      <div style="display:flex; gap:24px; margin-top:16px;">
-        <div style="flex:1;">
-          <div style="font-size:12px; color:#2563eb; margin-bottom:6px;">UZSAKOVAS</div>
-          <div style="font-size:14px; font-weight:700;">${sanitizeText(invoice.client)}</div>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:12px; color:#2563eb; margin-bottom:6px;">DATOS</div>
-          <div style="font-size:12px; color:#374151;">Israsymo data: ${sanitizeText(formatDate(invoice.date))}</div>
-          <div style="font-size:12px; color:#374151;">Apmokejimo terminas: ${sanitizeText(formatDate(invoice.dueDate))}</div>
-        </div>
-      </div>
+  const wrapper = document.createElement('div');
+  
+  // Title
+  const title = createEl('div', {
+    textAlign: 'center',
+    color: '#2563eb',
+    fontWeight: '700',
+    fontSize: '26px'
+  }, 'Saskaita faktura');
+  wrapper.appendChild(title);
 
-      <div style="margin-top:20px;">
-        <div style="font-size:12px; color:#2563eb;">STATUSAS</div>
-        <div style="font-size:12px; font-weight:700; color:${getStatusColor(invoice.status)}; margin-top:4px;">
-          ${statusLabel}
-        </div>
-      </div>
+  // Invoice number
+  const invoiceNum = createEl('div', {
+    textAlign: 'center',
+    color: '#6b7280',
+    marginTop: '6px'
+  }, `Nr. ${invoice.number}`);
+  wrapper.appendChild(invoiceNum);
 
-      <div style="margin-top:24px; border-radius:4px; overflow:hidden; border:1px solid #e5e7eb;">
-        <div style="display:flex; justify-content:space-between; padding:8px 12px; background:#2563eb; color:#ffffff; font-weight:600;">
-          <div>APRASYMAS</div>
-          <div>SUMA</div>
-        </div>
-        <div style="display:flex; justify-content:space-between; padding:10px 12px; border-top:1px solid #e5e7eb; font-size:12px;">
-          <div>Paslaugos pagal sutarti</div>
-          <div>${formatCurrencySafe(invoice.amount)}</div>
-        </div>
-      </div>
+  // Header line
+  const headerLine = createEl('div', {
+    height: '2px',
+    background: '#2563eb',
+    margin: '16px 0 8px'
+  });
+  wrapper.appendChild(headerLine);
 
-      <div style="margin-top:24px; display:flex; justify-content:flex-end;">
-        <div style="width:300px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px; color:#6b7280;">
-            <div>Suma be PVM:</div>
-            <div style="color:#111827;">${formatCurrencySafe(amountWithoutVAT)}</div>
-          </div>
-          <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:#6b7280;">
-            <div>PVM (21%):</div>
-            <div style="color:#111827;">${formatCurrencySafe(invoice.amount - amountWithoutVAT)}</div>
-          </div>
-          <div style="height:2px; background:#2563eb; margin:10px 0 8px;"></div>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="font-size:12px; color:#6b7280;">Bendra suma:</div>
-            <div style="font-size:16px; font-weight:700; color:#2563eb;">${formatCurrencySafe(invoice.amount)}</div>
-          </div>
-          ${
-            invoice.paidAmount !== undefined
-              ? `<div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#6b7280;">
-                   <div>Sumoketa:</div>
-                   <div style="color:#059669; font-weight:600;">${formatCurrencySafe(invoice.paidAmount)}</div>
-                 </div>
-                 <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:#6b7280;">
-                   <div>Likusi suma:</div>
-                   <div style="color:#dc2626; font-weight:600;">${formatCurrencySafe(remaining || 0)}</div>
-                 </div>`
-              : ''
-          }
-        </div>
-      </div>
+  // Two columns
+  const columns = createEl('div', {
+    display: 'flex',
+    gap: '24px',
+    marginTop: '16px'
+  });
 
-      ${
-        invoice.notes
-          ? `<div style="margin-top:24px; border-top:1px solid #e5e7eb; padding-top:10px;">
-               <div style="font-size:12px; color:#2563eb; font-weight:700;">PASTABOS</div>
-               <div style="font-size:12px; color:#4b5563; margin-top:6px;">${sanitizeText(invoice.notes)}</div>
-             </div>`
-          : ''
-      }
+  const leftCol = createEl('div', { flex: '1' });
+  const uzsakovasLabel = createEl('div', {
+    fontSize: '12px',
+    color: '#2563eb',
+    marginBottom: '6px'
+  }, 'UZSAKOVAS');
+  const clientName = createEl('div', {
+    fontSize: '14px',
+    fontWeight: '700'
+  }, sanitizeText(invoice.client));
+  leftCol.appendChild(uzsakovasLabel);
+  leftCol.appendChild(clientName);
 
-      <div style="text-align:center; margin-top:40px; font-size:10px; color:#6b7280;">
-        Saskaita sugeneruota automatiskai • ${formatDateForPdf(new Date())}
-      </div>
-    </div>
-  `;
+  const rightCol = createEl('div', { flex: '1' });
+  const datosLabel = createEl('div', {
+    fontSize: '12px',
+    color: '#2563eb',
+    marginBottom: '6px'
+  }, 'DATOS');
+  const issueDate = createEl('div', {
+    fontSize: '12px',
+    color: '#374151'
+  }, `Israsymo data: ${sanitizeText(formatDate(invoice.date))}`);
+  const dueDate = createEl('div', {
+    fontSize: '12px',
+    color: '#374151'
+  }, `Apmokejimo terminas: ${sanitizeText(formatDate(invoice.dueDate))}`);
+  rightCol.appendChild(datosLabel);
+  rightCol.appendChild(issueDate);
+  rightCol.appendChild(dueDate);
+
+  columns.appendChild(leftCol);
+  columns.appendChild(rightCol);
+  wrapper.appendChild(columns);
+
+  // Status
+  const statusSection = createEl('div', { marginTop: '20px' });
+  const statusLabelEl = createEl('div', {
+    fontSize: '12px',
+    color: '#2563eb'
+  }, 'STATUSAS');
+  const statusValue = createEl('div', {
+    fontSize: '12px',
+    fontWeight: '700',
+    color: getStatusColor(invoice.status),
+    marginTop: '4px'
+  }, statusLabel);
+  statusSection.appendChild(statusLabelEl);
+  statusSection.appendChild(statusValue);
+  wrapper.appendChild(statusSection);
+
+  // Table
+  const table = createEl('div', {
+    marginTop: '24px',
+    borderRadius: '4px',
+    overflow: 'hidden',
+    border: '1px solid #e5e7eb'
+  });
+  const tableHeader = createEl('div', {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '8px 12px',
+    background: '#2563eb',
+    color: '#ffffff',
+    fontWeight: '600'
+  });
+  const aprasymasHeader = createEl('div', {}, 'APRASYMAS');
+  const sumaHeader = createEl('div', {}, 'SUMA');
+  tableHeader.appendChild(aprasymasHeader);
+  tableHeader.appendChild(sumaHeader);
+  const tableRow = createEl('div', {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '10px 12px',
+    borderTop: '1px solid #e5e7eb',
+    fontSize: '12px'
+  });
+  const description = createEl('div', {}, 'Paslaugos pagal sutarti');
+  const amount = createEl('div', {}, formatCurrencySafe(invoice.amount));
+  tableRow.appendChild(description);
+  tableRow.appendChild(amount);
+  table.appendChild(tableHeader);
+  table.appendChild(tableRow);
+  wrapper.appendChild(table);
+
+  // Summary
+  const summary = createEl('div', {
+    marginTop: '24px',
+    display: 'flex',
+    justifyContent: 'flex-end'
+  });
+  const summaryInner = createEl('div', { width: '300px' });
+
+  const sumaBePVM = createEl('div', {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '12px',
+    color: '#6b7280'
+  });
+  sumaBePVM.appendChild(createEl('div', {}, 'Suma be PVM:'));
+  sumaBePVM.appendChild(createEl('div', { color: '#111827' }, formatCurrencySafe(amountWithoutVAT)));
+
+  const pvm = createEl('div', {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginTop: '6px',
+    fontSize: '12px',
+    color: '#6b7280'
+  });
+  pvm.appendChild(createEl('div', {}, 'PVM (21%):'));
+  pvm.appendChild(createEl('div', { color: '#111827' }, formatCurrencySafe(invoice.amount - amountWithoutVAT)));
+
+  const summaryLine = createEl('div', {
+    height: '2px',
+    background: '#2563eb',
+    margin: '10px 0 8px'
+  });
+
+  const total = createEl('div', {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  });
+  total.appendChild(createEl('div', {
+    fontSize: '12px',
+    color: '#6b7280'
+  }, 'Bendra suma:'));
+  total.appendChild(createEl('div', {
+    fontSize: '16px',
+    fontWeight: '700',
+    color: '#2563eb'
+  }, formatCurrencySafe(invoice.amount)));
+
+  summaryInner.appendChild(sumaBePVM);
+  summaryInner.appendChild(pvm);
+  summaryInner.appendChild(summaryLine);
+  summaryInner.appendChild(total);
+
+  if (invoice.paidAmount !== undefined) {
+    const paid = createEl('div', {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginTop: '10px',
+      fontSize: '12px',
+      color: '#6b7280'
+    });
+    paid.appendChild(createEl('div', {}, 'Sumoketa:'));
+    paid.appendChild(createEl('div', {
+      color: '#059669',
+      fontWeight: '600'
+    }, formatCurrencySafe(invoice.paidAmount)));
+
+    const remainingEl = createEl('div', {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginTop: '6px',
+      fontSize: '12px',
+      color: '#6b7280'
+    });
+    remainingEl.appendChild(createEl('div', {}, 'Likusi suma:'));
+    remainingEl.appendChild(createEl('div', {
+      color: '#dc2626',
+      fontWeight: '600'
+    }, formatCurrencySafe(remaining || 0)));
+
+    summaryInner.appendChild(paid);
+    summaryInner.appendChild(remainingEl);
+  }
+
+  summary.appendChild(summaryInner);
+  wrapper.appendChild(summary);
+
+  // Notes
+  if (invoice.notes) {
+    const notesSection = createEl('div', {
+      marginTop: '24px',
+      borderTop: '1px solid #e5e7eb',
+      paddingTop: '10px'
+    });
+    const notesLabel = createEl('div', {
+      fontSize: '12px',
+      color: '#2563eb',
+      fontWeight: '700'
+    }, 'PASTABOS');
+    const notesText = createEl('div', {
+      fontSize: '12px',
+      color: '#4b5563',
+      marginTop: '6px'
+    }, sanitizeText(invoice.notes));
+    notesSection.appendChild(notesLabel);
+    notesSection.appendChild(notesText);
+    wrapper.appendChild(notesSection);
+  }
+
+  // Footer
+  const footer = createEl('div', {
+    textAlign: 'center',
+    marginTop: '40px',
+    fontSize: '10px',
+    color: '#6b7280'
+  }, `Saskaita sugeneruota automatiskai • ${formatDateForPdf(new Date())}`);
+  wrapper.appendChild(footer);
+
+  container.appendChild(wrapper);
 
   document.body.appendChild(container);
 
