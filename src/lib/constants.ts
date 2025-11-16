@@ -10,7 +10,7 @@ export const INVOICE_STATUS = {
 
 export const INVOICE_STATUS_LABELS = {
   [INVOICE_STATUS.PAID]: 'Apmokėta',
-  [INVOICE_STATUS.UNPAID]: 'Neapmokėta',
+  [INVOICE_STATUS.UNPAID]: 'Pradelsta',
   [INVOICE_STATUS.PENDING]: 'Terminas nepasibaigęs',
 } as const;
 

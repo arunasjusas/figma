@@ -23,7 +23,7 @@ export function InvoiceFilters() {
   const statusOptions = [
     { value: '', label: 'Visi statusai' },
     { value: 'PAID', label: 'Apmokėta' },
-    { value: 'UNPAID', label: 'Neapmokėta' },
+    { value: 'UNPAID', label: 'Pradelsta' },
     { value: 'PENDING', label: 'Terminas nepasibaigęs' },
   ];
 
