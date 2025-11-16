@@ -105,8 +105,8 @@ export function InvoicesTable() {
       // Show success toast
       addToast({
         type: 'success',
-        title: 'Sėkmingai atsisiųsta',
-        message: `Sąskaita ${invoice.number} atsisiųsta. Atidarykite failą ir spausdinkite kaip PDF.`,
+        title: 'PDF atsisiųstas',
+        message: `Sąskaita ${invoice.number} sėkmingai atsisiųsta kaip PDF failas.`,
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
