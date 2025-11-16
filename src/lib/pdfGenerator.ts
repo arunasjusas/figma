@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import type { Invoice } from './mockData';
 import { formatCurrency, formatDate } from './utils';
 
@@ -46,6 +47,9 @@ export function generateInvoicePDF(invoice: Invoice): void {
     unit: 'mm',
     format: 'a4',
   });
+
+  // Ensure html2canvas is available for jsPDF.html in all bundling modes
+  (window as unknown as { html2canvas?: typeof html2canvas }).html2canvas = html2canvas;
 
   // Offscreen container for HTML content (A4 ~ 794px width at 96dpi)
   const container = document.createElement('div');
