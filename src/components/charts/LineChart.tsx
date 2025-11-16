@@ -1,4 +1,4 @@
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { colors } from '@/lib/design-tokens';
 
 interface LineChartProps {
@@ -10,18 +10,40 @@ interface LineChartProps {
   }>;
   xAxisKey: string;
   height?: number;
+  showLabels?: boolean;
 }
+
+/**
+ * Custom label component to show numbers on data points
+ */
+const CustomLabel = ({ x, y, value }: { x?: number; y?: number; value?: number }) => {
+  if (x === undefined || y === undefined || value === undefined) return null;
+  
+  return (
+    <text
+      x={x}
+      y={y - 8}
+      fill="#666"
+      textAnchor="middle"
+      fontSize={12}
+      fontWeight={500}
+    >
+      {value}
+    </text>
+  );
+};
 
 /**
  * Line chart component using Recharts
  * Configured to match design system specifications
+ * Shows numbers on data points and uses blue/green colors
  */
-export function LineChart({ data, lines, xAxisKey, height = 400 }: LineChartProps) {
+export function LineChart({ data, lines, xAxisKey, height = 400, showLabels = true }: LineChartProps) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <RechartsLineChart
         data={data}
-        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
       >
         <CartesianGrid strokeDasharray="3 3" stroke={colors.neutral.border} opacity={0.5} />
         <XAxis
@@ -56,9 +78,11 @@ export function LineChart({ data, lines, xAxisKey, height = 400 }: LineChartProp
             name={line.name}
             stroke={line.color}
             strokeWidth={2}
-            dot={{ r: 4 }}
-            activeDot={{ r: 6 }}
-          />
+            dot={{ r: 5, fill: line.color, strokeWidth: 2, stroke: '#fff' }}
+            activeDot={{ r: 7 }}
+          >
+            {showLabels && <LabelList content={<CustomLabel />} />}
+          </Line>
         ))}
       </RechartsLineChart>
     </ResponsiveContainer>

@@ -51,17 +51,17 @@ export function StatisticsChart() {
     {
       dataKey: 'paid',
       name: 'Sumokėtos',
-      color: colors.chart.green,
+      color: colors.chart.green, // Green line
     },
     {
       dataKey: 'unpaid',
       name: 'Pradelstos',
-      color: colors.chart.purple,
+      color: colors.primary.default, // Blue line
     },
     {
       dataKey: 'pending',
       name: 'Terminas Nepasibaigęs',
-      color: colors.chart.blue,
+      color: colors.chart.blue, // Light blue line
     },
   ];
 
