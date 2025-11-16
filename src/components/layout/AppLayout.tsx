@@ -17,7 +17,7 @@ export function AppLayout({ pageTitle = 'Sąskaitų statistika', showActions = t
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
-  const isDashboard = location.pathname === '/dashboard';
+  const hasGrayBackground = location.pathname === '/dashboard' || location.pathname === '/kpi-panel';
 
   return (
     <div className="min-h-screen">
@@ -40,7 +40,7 @@ export function AppLayout({ pageTitle = 'Sąskaitų statistika', showActions = t
           showActions={showActions}
         />
 
-        <main className={`p-6 ${isDashboard ? 'bg-[#808080]' : ''}`}>
+        <main className={`p-6 ${hasGrayBackground ? 'bg-gray-100' : ''}`}>
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
