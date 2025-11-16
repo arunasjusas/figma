@@ -52,6 +52,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Statistics Chart - First */}
+      <StatisticsChart />
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <KpiCard
@@ -73,9 +76,6 @@ export default function DashboardPage() {
 
       {/* Recent Actions Table */}
       <RecentActionsTable />
-
-      {/* Statistics Chart */}
-      <StatisticsChart />
     </div>
   );
 }
