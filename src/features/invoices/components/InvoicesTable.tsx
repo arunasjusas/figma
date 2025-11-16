@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/Card';
 import { Trash2, Download, Send, Edit } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import type { Invoice } from '@/lib/mockData';
+import { useToastStore } from '@/components/ui/Toast';
 
 /**
  * Invoices table component
@@ -20,6 +21,7 @@ export function InvoicesTable() {
   const isMobile = useIsMobile();
   const allInvoices = useInvoiceStore((state) => state.invoices);
   const deleteInvoice = useInvoiceStore((state) => state.deleteInvoice);
+  const addToast = useToastStore((state) => state.addToast);
 
   const { amountFrom, amountTo, searchNumber, searchClient, status } = useInvoiceFilterStore();
 
@@ -92,6 +94,41 @@ export function InvoicesTable() {
 
   const handleCloseAiModal = () => {
     setIsAiModalOpen(false);
+  };
+
+  const handleDownloadPDF = (invoice: Invoice) => {
+    // Mock PDF generation and download
+    addToast({
+      type: 'success',
+      title: 'Sėkmingai atsisiųsta',
+      message: `Sąskaita ${invoice.number} sėkmingai atsisiųsta!`,
+    });
+    
+    // In a real implementation, this would generate and download a PDF
+    // For now, we'll just show a success message
+    console.log('Downloading PDF for invoice:', invoice.number);
+  };
+
+  const handleSendAiMessage = () => {
+    if (!selectedInvoice) return;
+
+    // Mock sending AI message
+    addToast({
+      type: 'success',
+      title: 'Pranešimas išsiųstas',
+      message: `AI pranešimas sėkmingai išsiųstas klientui ${selectedInvoice.client}!`,
+    });
+
+    // Close the modal after sending
+    setIsAiModalOpen(false);
+
+    // In a real implementation, this would call an API to send the message
+    console.log('Sending AI message:', {
+      invoice: selectedInvoice.number,
+      client: selectedInvoice.client,
+      subject: aiMessageSubject,
+      body: aiMessageBody,
+    });
   };
 
   const renderModals = () => {
@@ -173,7 +210,10 @@ export function InvoicesTable() {
                 <Send className="w-4 h-4 mr-2" />
                 Siųsti AI pranešimą
               </Button>
-              <Button variant="outline">
+              <Button 
+                variant="outline"
+                onClick={() => handleDownloadPDF(selectedInvoice)}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Atsisiųsti sąskaitą PDF
               </Button>
@@ -223,11 +263,17 @@ export function InvoicesTable() {
               />
             </div>
             <div className="flex gap-3 pt-4">
-              <Button variant="outline">
+              <Button 
+                variant="outline"
+                onClick={handleCloseAiModal}
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Redaguoti
               </Button>
-              <Button variant="primary">
+              <Button 
+                variant="primary"
+                onClick={handleSendAiMessage}
+              >
                 Patvirtinti ir siųsti
               </Button>
             </div>
