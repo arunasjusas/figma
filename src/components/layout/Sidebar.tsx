@@ -61,11 +61,7 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-60 bg-[#1F1F1F] border-r border-[#3A3A3A] flex flex-col scrollbar-hide">
-      <div className="p-6 flex-shrink-0">
-        <h1 className="text-xl font-bold text-white">Sąskaitų Sistema</h1>
-      </div>
-
-      <nav className="flex-1 flex flex-col px-3 pb-6 overflow-y-auto">
+      <nav className="flex-1 flex flex-col px-3 pt-6 pb-6 overflow-y-auto">
         {/* Top section - main navigation */}
         <div className="flex-shrink-0">
           {navSections[0] && (
