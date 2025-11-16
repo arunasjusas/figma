@@ -11,6 +11,7 @@ import { Trash2, Download, Send, Edit } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import type { Invoice } from '@/lib/mockData';
 import { useToastStore } from '@/components/ui/Toast';
+import { generateInvoicePDF } from '@/lib/pdfGenerator';
 
 /**
  * Invoices table component
@@ -97,16 +98,24 @@ export function InvoicesTable() {
   };
 
   const handleDownloadPDF = (invoice: Invoice) => {
-    // Mock PDF generation and download
-    addToast({
-      type: 'success',
-      title: 'Sėkmingai atsisiųsta',
-      message: `Sąskaita ${invoice.number} sėkmingai atsisiųsta!`,
-    });
-    
-    // In a real implementation, this would generate and download a PDF
-    // For now, we'll just show a success message
-    console.log('Downloading PDF for invoice:', invoice.number);
+    try {
+      // Generate and download PDF
+      generateInvoicePDF(invoice);
+      
+      // Show success toast
+      addToast({
+        type: 'success',
+        title: 'PDF generuojamas',
+        message: `Sąskaita ${invoice.number} atidaryta naujame lange spausdinimui.`,
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      addToast({
+        type: 'error',
+        title: 'Klaida',
+        message: 'Nepavyko sugeneruoti PDF. Bandykite dar kartą.',
+      });
+    }
   };
 
   const handleSendAiMessage = () => {
