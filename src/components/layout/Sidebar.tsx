@@ -60,9 +60,9 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-60 bg-white border-r border-neutral-border flex flex-col scrollbar-hide">
+    <aside className="fixed left-0 top-0 h-screen w-60 bg-gray-800 border-r border-neutral-border flex flex-col scrollbar-hide">
       <div className="p-6 flex-shrink-0">
-        <h1 className="text-xl font-bold text-primary">Sąskaitų Sistema</h1>
+        <h1 className="text-xl font-bold text-white">Sąskaitų Sistema</h1>
       </div>
 
       <nav className="flex-1 flex flex-col px-3 pb-6 overflow-y-auto">
@@ -77,14 +77,14 @@ export function Sidebar() {
                     className={cn(
                       'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                       isActive(item.path)
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-primary/20 text-white'
+                        : 'text-gray-300 hover:bg-gray-700'
                     )}
                   >
                     {item.icon}
                     <span className="flex-1">{item.label}</span>
                     {item.badge && (
-                      <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
+                      <span className="px-2 py-0.5 text-xs bg-primary/20 text-white rounded-full">
                         {item.badge}
                       </span>
                     )}
@@ -96,7 +96,7 @@ export function Sidebar() {
         </div>
 
         {/* Bottom section - settings and footer, pushed to bottom */}
-        <div className="mt-auto pt-6 border-t border-neutral-border">
+        <div className="mt-auto pt-6 border-t border-gray-700">
           {navSections[1] && (
             <ul className="space-y-1 mb-6">
               {navSections[1].items.map((item) => (
@@ -106,8 +106,8 @@ export function Sidebar() {
                     className={cn(
                       'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                       isActive(item.path)
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-primary/20 text-white'
+                        : 'text-gray-300 hover:bg-gray-700'
                     )}
                   >
                     {item.icon}
@@ -118,10 +118,10 @@ export function Sidebar() {
             </ul>
           )}
 
-          <div className="pt-6 border-t border-neutral-border">
+          <div className="pt-6 border-t border-gray-700">
             <button
               onClick={logout}
-              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700 transition-colors"
             >
               <LogOut className="w-5 h-5" />
               <span>Atsijungti</span>
