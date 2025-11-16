@@ -4,6 +4,7 @@ import { Menu, Plus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { AddClientModal } from '@/components/shared/AddClientModal';
+import { AddInvoiceModal } from '@/components/shared/AddInvoiceModal';
 
 interface TopBarProps {
   title?: string;
@@ -20,6 +21,7 @@ export function TopBar({ title: defaultTitle = 'Sąskaitų Sistema', onMenuClick
   const isMobile = useIsMobile();
   const location = useLocation();
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [pageTitle, setPageTitle] = useState(defaultTitle);
 
   // Listen for page title changes from individual pages
@@ -38,8 +40,7 @@ export function TopBar({ title: defaultTitle = 'Sąskaitų Sistema', onMenuClick
   const shouldShowActions = showActions && location.pathname === '/invoices';
 
   const handleNewInvoice = () => {
-    // Open in new tab
-    window.open('/invoices/new', '_blank');
+    setIsInvoiceModalOpen(true);
   };
 
   const handleAddClient = () => {
@@ -93,6 +94,12 @@ export function TopBar({ title: defaultTitle = 'Sąskaitų Sistema', onMenuClick
       <AddClientModal 
         isOpen={isClientModalOpen} 
         onClose={() => setIsClientModalOpen(false)} 
+      />
+
+      {/* Add Invoice Modal */}
+      <AddInvoiceModal 
+        isOpen={isInvoiceModalOpen} 
+        onClose={() => setIsInvoiceModalOpen(false)} 
       />
     </>
   );
