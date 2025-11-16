@@ -26,29 +26,29 @@ export default function KpiPanelPage() {
     // Total invoices
     const totalInvoices = activeInvoices.length;
 
-    // Overdue invoices (UNPAID with past due date)
-    const overdueInvoices = activeInvoices.filter((inv) => {
-      if (inv.status !== 'UNPAID') return false;
+    // Pradelsta invoices - all invoices with UNPAID status (matches invoice table logic)
+    const pradelstaInvoices = activeInvoices.filter((inv) => inv.status === 'UNPAID');
+    const pradelstaCount = pradelstaInvoices.length;
+    const pradelstaTotal = pradelstaInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+
+    // Past due - invoices that are UNPAID AND past their due date
+    const pastDueInvoices = pradelstaInvoices.filter((inv) => {
       const dueDate = new Date(inv.dueDate);
       return dueDate < now;
     });
-    const overdueCount = overdueInvoices.length;
-    const overdueTotal = overdueInvoices.reduce((sum, inv) => sum + inv.amount, 0);
-
-    // Past due (same as overdue, but different terminology)
-    const pastDueCount = overdueCount;
+    const pastDueCount = pastDueInvoices.length;
 
     // Active invoices (non-deleted)
     const activeCount = activeInvoices.length;
 
-    // Average delay in days
-    const averageDelay = overdueInvoices.length > 0
+    // Average delay in days (only for invoices past due date)
+    const averageDelay = pastDueInvoices.length > 0
       ? Math.round(
-          overdueInvoices.reduce((sum, inv) => {
+          pastDueInvoices.reduce((sum, inv) => {
             const dueDate = new Date(inv.dueDate);
             const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
             return sum + daysOverdue;
-          }, 0) / overdueInvoices.length
+          }, 0) / pastDueInvoices.length
         )
       : 0;
 
@@ -59,8 +59,8 @@ export default function KpiPanelPage() {
     return {
       sentReminders,
       totalInvoices,
-      overdueCount,
-      overdueTotal,
+      pradelstaCount,
+      pradelstaTotal,
       activeCount,
       pastDueCount,
       averageDelay,
@@ -114,8 +114,8 @@ export default function KpiPanelPage() {
         />
         <KpiCard
           title="Vėluojančios"
-          subtitle={`${formatCurrency(kpiData.overdueTotal)}`}
-          value={`${kpiData.overdueCount} vnt.`}
+          subtitle={`${formatCurrency(kpiData.pradelstaTotal)}`}
+          value={`${kpiData.pradelstaCount} vnt.`}
         />
         <KpiCard
           title="Aktyvių sąskaitų skaičius"

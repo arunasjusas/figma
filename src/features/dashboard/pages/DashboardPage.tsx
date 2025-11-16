@@ -34,22 +34,18 @@ export default function DashboardPage() {
       })
       .reduce((sum, inv) => sum + inv.amount, 0);
 
-    // Overdue invoices (UNPAID with past due date) - same logic as KPI Panele
-    const overdueInvoices = activeInvoices.filter((inv) => {
-      if (inv.status !== 'UNPAID') return false;
-      const dueDate = new Date(inv.dueDate);
-      return dueDate < now;
-    });
-    const overdueCount = overdueInvoices.length;
-    const overdueTotal = overdueInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    // Pradelsta invoices - all invoices with UNPAID status (matches invoice table logic)
+    const pradelstaInvoices = activeInvoices.filter((inv) => inv.status === 'UNPAID');
+    const pradelstaCount = pradelstaInvoices.length;
+    const pradelstaTotal = pradelstaInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
     // AI reminders (mock for now - can be implemented later)
     const aiReminders = 24;
 
     return {
       thisMonthRevenue,
-      overdueCount,
-      overdueTotal,
+      pradelstaCount,
+      pradelstaTotal,
       aiReminders,
     };
   }, [getActiveInvoices]);
@@ -69,7 +65,7 @@ export default function DashboardPage() {
         <KpiCard
           title="Pradelsta"
           subtitle="Vėluojančios sąskaitos"
-          value={`${kpiData.overdueCount} vnt. · ${formatCurrency(kpiData.overdueTotal)}`}
+          value={`${kpiData.pradelstaCount} vnt. · ${formatCurrency(kpiData.pradelstaTotal)}`}
         />
         <KpiCard
           title="AI žinutės"
