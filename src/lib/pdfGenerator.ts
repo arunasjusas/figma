@@ -54,14 +54,17 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
   container.style.fontSize = '14px';
   container.style.lineHeight = '1.5';
 
-  const statusLabel = getStatusLabel(invoice.status);
+  const statusLabel = sanitizeText(getStatusLabel(invoice.status));
   const amountWithoutVAT = invoice.amount / 1.21;
   const remaining = invoice.paidAmount !== undefined ? (invoice.amount - invoice.paidAmount) : undefined;
+
+  // Format currency and sanitize it
+  const formatCurrencySafe = (amount: number) => sanitizeText(formatCurrency(amount));
 
   container.innerHTML = `
     <div>
       <div style="text-align:center; color:#2563eb; font-weight:700; font-size:26px;">
-        Sąskaita faktūra
+        Saskaita faktura
       </div>
       <div style="text-align:center; color:#6b7280; margin-top:6px;">
         Nr. ${invoice.number}
@@ -70,13 +73,13 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
 
       <div style="display:flex; gap:24px; margin-top:16px;">
         <div style="flex:1;">
-          <div style="font-size:12px; color:#2563eb; margin-bottom:6px;">UŽSAKOVAS</div>
-          <div style="font-size:14px; font-weight:700;">${invoice.client}</div>
+          <div style="font-size:12px; color:#2563eb; margin-bottom:6px;">UZSAKOVAS</div>
+          <div style="font-size:14px; font-weight:700;">${sanitizeText(invoice.client)}</div>
         </div>
         <div style="flex:1;">
           <div style="font-size:12px; color:#2563eb; margin-bottom:6px;">DATOS</div>
-          <div style="font-size:12px; color:#374151;">Išrašymo data: ${formatDate(invoice.date)}</div>
-          <div style="font-size:12px; color:#374151;">Apmokėjimo terminas: ${formatDate(invoice.dueDate)}</div>
+          <div style="font-size:12px; color:#374151;">Israsymo data: ${sanitizeText(formatDate(invoice.date))}</div>
+          <div style="font-size:12px; color:#374151;">Apmokejimo terminas: ${sanitizeText(formatDate(invoice.dueDate))}</div>
         </div>
       </div>
 
@@ -89,12 +92,12 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
 
       <div style="margin-top:24px; border-radius:4px; overflow:hidden; border:1px solid #e5e7eb;">
         <div style="display:flex; justify-content:space-between; padding:8px 12px; background:#2563eb; color:#ffffff; font-weight:600;">
-          <div>APRAŠYMAS</div>
+          <div>APRASYMAS</div>
           <div>SUMA</div>
         </div>
         <div style="display:flex; justify-content:space-between; padding:10px 12px; border-top:1px solid #e5e7eb; font-size:12px;">
-          <div>Paslaugos pagal sutartį</div>
-          <div>${formatCurrency(invoice.amount)}</div>
+          <div>Paslaugos pagal sutarti</div>
+          <div>${formatCurrencySafe(invoice.amount)}</div>
         </div>
       </div>
 
@@ -102,26 +105,26 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
         <div style="width:300px;">
           <div style="display:flex; justify-content:space-between; font-size:12px; color:#6b7280;">
             <div>Suma be PVM:</div>
-            <div style="color:#111827;">${formatCurrency(amountWithoutVAT)}</div>
+            <div style="color:#111827;">${formatCurrencySafe(amountWithoutVAT)}</div>
           </div>
           <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:#6b7280;">
             <div>PVM (21%):</div>
-            <div style="color:#111827;">${formatCurrency(invoice.amount - amountWithoutVAT)}</div>
+            <div style="color:#111827;">${formatCurrencySafe(invoice.amount - amountWithoutVAT)}</div>
           </div>
           <div style="height:2px; background:#2563eb; margin:10px 0 8px;"></div>
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div style="font-size:12px; color:#6b7280;">Bendra suma:</div>
-            <div style="font-size:16px; font-weight:700; color:#2563eb;">${formatCurrency(invoice.amount)}</div>
+            <div style="font-size:16px; font-weight:700; color:#2563eb;">${formatCurrencySafe(invoice.amount)}</div>
           </div>
           ${
             invoice.paidAmount !== undefined
               ? `<div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#6b7280;">
-                   <div>Sumokėta:</div>
-                   <div style="color:#059669; font-weight:600;">${formatCurrency(invoice.paidAmount)}</div>
+                   <div>Sumoketa:</div>
+                   <div style="color:#059669; font-weight:600;">${formatCurrencySafe(invoice.paidAmount)}</div>
                  </div>
                  <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:#6b7280;">
                    <div>Likusi suma:</div>
-                   <div style="color:#dc2626; font-weight:600;">${formatCurrency(remaining || 0)}</div>
+                   <div style="color:#dc2626; font-weight:600;">${formatCurrencySafe(remaining || 0)}</div>
                  </div>`
               : ''
           }
@@ -132,13 +135,13 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
         invoice.notes
           ? `<div style="margin-top:24px; border-top:1px solid #e5e7eb; padding-top:10px;">
                <div style="font-size:12px; color:#2563eb; font-weight:700;">PASTABOS</div>
-               <div style="font-size:12px; color:#4b5563; margin-top:6px;">${invoice.notes}</div>
+               <div style="font-size:12px; color:#4b5563; margin-top:6px;">${sanitizeText(invoice.notes)}</div>
              </div>`
           : ''
       }
 
       <div style="text-align:center; margin-top:40px; font-size:10px; color:#6b7280;">
-        Sąskaita sugeneruota automatiškai • ${formatDateForPdf(new Date())}
+        Saskaita sugeneruota automatiskai • ${formatDateForPdf(new Date())}
       </div>
     </div>
   `;
