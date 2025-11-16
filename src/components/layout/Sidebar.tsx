@@ -2,7 +2,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
-  TrendingDown, 
   Upload, 
   Bot,
   ListOrdered,
@@ -10,7 +9,6 @@ import {
   BarChart3,
   HelpCircle,
   Settings,
-  Users,
   Shield,
   FileCheck,
   LogOut,
@@ -44,7 +42,6 @@ export function Sidebar() {
       items: [
         { label: 'Peržiūra', path: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
         { label: 'Sąskaitos', path: '/invoices', icon: <FileText className="w-5 h-5" /> },
-        { label: 'Išlaidos', path: '/expenses', icon: <TrendingDown className="w-5 h-5" /> },
         { label: 'CSV Įkėlimas', path: '/csv-upload', icon: <Upload className="w-5 h-5" /> },
         { label: 'Šiukšliadėžė', path: '/recycle-bin', icon: <Trash2 className="w-5 h-5" /> },
       ],
@@ -61,7 +58,6 @@ export function Sidebar() {
       items: [
         { label: 'AI Pagalba', path: '/ai-help', icon: <Bot className="w-5 h-5" />, badge: 'Beta' },
         { label: 'Nustatymai', path: '/settings', icon: <Settings className="w-5 h-5" /> },
-        { label: 'Komanda', path: '/team', icon: <Users className="w-5 h-5" /> },
         { label: 'Pagalba', path: '/help', icon: <HelpCircle className="w-5 h-5" /> },
         { label: 'Privatumo politika', path: '/privacy', icon: <Shield className="w-5 h-5" /> },
         { label: 'Naudojimo Sąlygos', path: '/terms', icon: <FileCheck className="w-5 h-5" /> },
