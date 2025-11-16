@@ -50,6 +50,21 @@ export function AnalyticsTab() {
         <h2 className="text-2xl font-bold text-gray-900">Analitika</h2>
       </div>
 
+      {/* Sending Activity Graph - First */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Siuntimo aktyvumas (statinis grafikas)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <LineChart
+            data={sendingActivityData}
+            lines={chartLines}
+            xAxisKey="month"
+            height={300}
+          />
+        </CardContent>
+      </Card>
+
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -77,20 +92,6 @@ export function AnalyticsTab() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Sending Activity Graph */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Siuntimo aktyvumas (statinis grafikas)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <LineChart
-            data={sendingActivityData}
-            lines={chartLines}
-            xAxisKey="month"
-          />
-        </CardContent>
-      </Card>
 
       {/* Recent AI Messages Table */}
       <Card>
