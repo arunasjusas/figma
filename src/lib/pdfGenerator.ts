@@ -3,6 +3,26 @@ import type { Invoice } from './mockData';
 import { formatCurrency } from './utils';
 
 /**
+ * Sanitize text by replacing Lithuanian and special characters with ASCII equivalents.
+ * This ensures jsPDF's default Helvetica font can render all text correctly.
+ */
+function sanitizeText(text: string | null | undefined): string {
+  if (!text) return '';
+  
+  const replacements: Record<string, string> = {
+    'ą': 'a', 'č': 'c', 'ę': 'e', 'ė': 'e', 'į': 'i', 'š': 's', 'ų': 'u', 'ū': 'u', 'ž': 'z',
+    'Ą': 'A', 'Č': 'C', 'Ę': 'E', 'Ė': 'E', 'Į': 'I', 'Š': 'S', 'Ų': 'U', 'Ū': 'U', 'Ž': 'Z',
+  };
+  
+  let sanitized = text;
+  for (const [original, replacement] of Object.entries(replacements)) {
+    sanitized = sanitized.replace(new RegExp(original, 'g'), replacement);
+  }
+  
+  return sanitized;
+}
+
+/**
  * Simple date formatter for PDFs that avoids locale-specific characters.
  * Returns date as YYYY-MM-DD so jsPDF doesn't need to handle Lithuanian letters.
  */
@@ -58,7 +78,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   doc.setFontSize(12);
   doc.setTextColor(textColor);
   doc.setFont('helvetica', 'bold');
-  doc.text(invoice.client, 20, yPos + 6);
+  doc.text(sanitizeText(invoice.client), 20, yPos + 6);
   doc.setFont('helvetica', 'normal');
 
   // Dates
@@ -82,7 +102,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   const statusColor = getStatusColor(invoice.status);
   doc.setTextColor(statusColor);
   doc.setFont('helvetica', 'bold');
-  doc.text(statusLabel, 20, yPos + 6);
+  doc.text(sanitizeText(statusLabel), 20, yPos + 6);
   doc.setFont('helvetica', 'normal');
 
   // Details Table
@@ -102,7 +122,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   
   yPos += 6;
   doc.text('Paslaugos pagal sutarti', 25, yPos);
-  doc.text(formatCurrency(invoice.amount), 175, yPos, { align: 'right' });
+  doc.text(sanitizeText(formatCurrency(invoice.amount)), 175, yPos, { align: 'right' });
   
   yPos += 2;
   doc.line(20, yPos, 190, yPos);
@@ -118,14 +138,14 @@ export function generateInvoicePDF(invoice: Invoice): void {
   const amountWithoutVAT = invoice.amount / 1.21;
   doc.text('Suma be PVM:', summaryX, yPos);
   doc.setTextColor(textColor);
-  doc.text(formatCurrency(amountWithoutVAT), 185, yPos, { align: 'right' });
+  doc.text(sanitizeText(formatCurrency(amountWithoutVAT)), 185, yPos, { align: 'right' });
   
   // VAT
   yPos += 6;
   doc.setTextColor(grayColor);
   doc.text('PVM (21%):', summaryX, yPos);
   doc.setTextColor(textColor);
-  doc.text(formatCurrency(invoice.amount - amountWithoutVAT), 185, yPos, { align: 'right' });
+  doc.text(sanitizeText(formatCurrency(invoice.amount - amountWithoutVAT)), 185, yPos, { align: 'right' });
   
   // Total - with line
   yPos += 8;
@@ -140,7 +160,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(primaryColor);
-  doc.text(formatCurrency(invoice.amount), 185, yPos, { align: 'right' });
+  doc.text(sanitizeText(formatCurrency(invoice.amount)), 185, yPos, { align: 'right' });
   doc.setFont('helvetica', 'normal');
 
   // Paid and remaining amounts (if applicable)
@@ -150,13 +170,13 @@ export function generateInvoicePDF(invoice: Invoice): void {
     doc.setTextColor(grayColor);
     doc.text('Sumoketa:', summaryX, yPos);
     doc.setTextColor('#059669'); // Green
-    doc.text(formatCurrency(invoice.paidAmount), 185, yPos, { align: 'right' });
+    doc.text(sanitizeText(formatCurrency(invoice.paidAmount)), 185, yPos, { align: 'right' });
     
     yPos += 6;
     doc.setTextColor(grayColor);
     doc.text('Likusi suma:', summaryX, yPos);
     doc.setTextColor('#dc2626'); // Red
-    doc.text(formatCurrency(invoice.amount - invoice.paidAmount), 185, yPos, { align: 'right' });
+    doc.text(sanitizeText(formatCurrency(invoice.amount - invoice.paidAmount)), 185, yPos, { align: 'right' });
   }
 
   // Notes section (if applicable)
@@ -177,7 +197,8 @@ export function generateInvoicePDF(invoice: Invoice): void {
     yPos += 5;
     doc.setFontSize(9);
     doc.setTextColor(grayColor);
-    const notesLines = doc.splitTextToSize(invoice.notes, 160);
+    const sanitizedNotes = sanitizeText(invoice.notes);
+    const notesLines = doc.splitTextToSize(sanitizedNotes, 160);
     doc.text(notesLines, 25, yPos);
   }
 
@@ -188,23 +209,23 @@ export function generateInvoicePDF(invoice: Invoice): void {
   doc.text(footerText, 105, 280, { align: 'center' });
 
   // Generate filename
-  const filename = `Saskaita_${invoice.number}_${invoice.client.replace(/\s+/g, '_')}.pdf`;
+  const filename = `Saskaita_${invoice.number}_${sanitizeText(invoice.client).replace(/\s+/g, '_')}.pdf`;
 
   // Save the PDF
   doc.save(filename);
 }
 
 /**
- * Get status label in Lithuanian (ASCII-only for PDF safety)
+ * Get status label in Lithuanian (will be sanitized before rendering)
  */
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    'PAID': 'Apmoketa',
-    'paid': 'Apmoketa',
+    'PAID': 'Apmokėta',
+    'paid': 'Apmokėta',
     'UNPAID': 'Pradelsta',
     'unpaid': 'Pradelsta',
-    'PENDING': 'Terminas nepasibaiges',
-    'pending': 'Terminas nepasibaiges',
+    'PENDING': 'Terminas nepasibaigęs',
+    'pending': 'Terminas nepasibaigęs',
   };
   return labels[status] || status;
 }
