@@ -3,19 +3,33 @@ import { formatCurrency, formatDate } from './utils';
 
 /**
  * Generate and download invoice PDF
- * Uses browser's built-in PDF generation capabilities
+ * Creates a styled HTML document and converts it to PDF for download
  */
 export function generateInvoicePDF(invoice: Invoice): void {
-  // Create a new window for PDF generation
-  const printWindow = window.open('', '_blank');
+  // Create HTML content
+  const htmlContent = generateInvoiceHTML(invoice);
   
-  if (!printWindow) {
-    alert('Prašome leisti iššokančius langus, kad galėtumėte atsisiųsti PDF.');
-    return;
-  }
+  // Create a blob from the HTML
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  
+  // Create a temporary link and trigger download
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `Saskaita_${invoice.number}_${invoice.client.replace(/\s+/g, '_')}.html`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Clean up the URL
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
 
-  // Generate HTML content for PDF
-  const htmlContent = `
+/**
+ * Generate HTML content for the invoice
+ */
+function generateInvoiceHTML(invoice: Invoice): string {
+  return `
     <!DOCTYPE html>
     <html lang="lt">
     <head>
@@ -286,19 +300,11 @@ export function generateInvoicePDF(invoice: Invoice): void {
         // Auto-print when page loads
         window.onload = function() {
           window.print();
-          // Close window after printing (user can cancel)
-          setTimeout(function() {
-            window.close();
-          }, 100);
         };
       </script>
     </body>
     </html>
   `;
-
-  // Write content to new window
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
 }
 
 /**
