@@ -214,7 +214,7 @@ export function InvoicesTable() {
                   <p className="font-semibold">{formatDate(selectedInvoice.date)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Apmokėjimo terminas</p>
+                  <p className="text-sm text-gray-600">Terminas</p>
                   <p className="font-semibold">{formatDate(selectedInvoice.dueDate)}</p>
                 </div>
               </div>
@@ -448,7 +448,7 @@ export function InvoicesTable() {
             <TableHead>Data</TableHead>
             <TableHead>Klientas</TableHead>
             <TableHead className="text-right">Suma</TableHead>
-            <TableHead>Apmokėjimo terminas</TableHead>
+            <TableHead>Terminas</TableHead>
             <TableHead>Statusas</TableHead>
             <TableHead>Veiksmai</TableHead>
           </TableRow>
