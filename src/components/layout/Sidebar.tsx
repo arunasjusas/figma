@@ -60,7 +60,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-60 bg-gray-900 border-r border-gray-700 flex flex-col scrollbar-hide">
+    <aside className="fixed left-0 top-0 h-screen w-60 bg-[#1F1F1F] border-r border-[#3A3A3A] flex flex-col scrollbar-hide">
       <div className="p-6 flex-shrink-0">
         <h1 className="text-xl font-bold text-white">Sąskaitų Sistema</h1>
       </div>
