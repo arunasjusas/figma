@@ -18,7 +18,7 @@ export function AppLayout({ pageTitle = 'Sąskaitų statistika', showActions = t
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-[#808080]">
+    <div className="min-h-screen">
       {/* Desktop Sidebar */}
       {!isMobile && <Sidebar />}
 
@@ -31,7 +31,7 @@ export function AppLayout({ pageTitle = 'Sąskaitų statistika', showActions = t
       )}
 
       {/* Main Content */}
-      <div className={!isMobile ? 'ml-60' : ''}>
+      <div className={!isMobile ? 'ml-60 bg-[#808080] min-h-screen' : ''}>
         <TopBar
           title={pageTitle}
           onMenuClick={() => setIsMobileMenuOpen(true)}
