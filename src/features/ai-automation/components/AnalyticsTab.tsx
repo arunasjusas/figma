@@ -1,15 +1,50 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
+import { LineChart } from '@/components/charts/LineChart';
 import { formatDate } from '@/lib/utils';
+import { getAllMonthNames } from '@/lib/utils';
 import { mockAIMessages } from '@/lib/mockData';
 import { AI_MESSAGE_STATUS, AI_MESSAGE_STATUS_LABELS } from '@/lib/constants';
+import { colors } from '@/lib/design-tokens';
 
 /**
  * Analytics tab component for AI Automation
+ * Shows KPIs, sending activity graph, and recent messages table
  */
 export function AnalyticsTab() {
+  // Generate sending activity data for 12 months
+  const sendingActivityData = getAllMonthNames().map((month, index) => {
+    // Mock data matching the photo
+    const blueLineData = [14, 16, 13, 10, 7, 15, 22, 16, 7, 28, 22, 19];
+    const greenLineData = [10, 12, 9, 7, 4, 13, 15, 16, 7, 20, 22, 19];
+    
+    return {
+      month,
+      siustu: blueLineData[index],
+      atidaryta: greenLineData[index],
+    };
+  });
+
+  const chartLines = [
+    {
+      dataKey: 'siustu',
+      name: 'Išsiųsta',
+      color: colors.primary.default,
+    },
+    {
+      dataKey: 'atidaryta',
+      name: 'Atidaryta',
+      color: colors.chart.green,
+    },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Analytics Heading */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Analitika</h2>
+      </div>
+
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -37,6 +72,20 @@ export function AnalyticsTab() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Sending Activity Graph */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Siuntimo aktyvumas (statinis grafikas)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <LineChart
+            data={sendingActivityData}
+            lines={chartLines}
+            xAxisKey="month"
+          />
+        </CardContent>
+      </Card>
 
       {/* Recent AI Messages Table */}
       <Card>
