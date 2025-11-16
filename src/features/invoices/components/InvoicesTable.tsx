@@ -155,11 +155,20 @@ export function InvoicesTable() {
     setStatusChangeInvoice(null);
   };
 
-  const handleStatusChange = (newStatus: keyof typeof INVOICE_STATUS) => {
+  const handleStatusChange = (newStatus: string) => {
     if (!statusChangeInvoice) return;
     
+    // Convert lowercase constant to uppercase invoice status
+    const statusMap: Record<string, 'PAID' | 'UNPAID' | 'PENDING'> = {
+      [INVOICE_STATUS.PAID]: 'PAID',
+      [INVOICE_STATUS.UNPAID]: 'UNPAID',
+      [INVOICE_STATUS.PENDING]: 'PENDING',
+    };
+    
+    const uppercaseStatus = statusMap[newStatus] || newStatus.toUpperCase() as 'PAID' | 'UNPAID' | 'PENDING';
+    
     // Update the local state for immediate UI feedback
-    setStatusChangeInvoice({ ...statusChangeInvoice, status: newStatus });
+    setStatusChangeInvoice({ ...statusChangeInvoice, status: uppercaseStatus });
   };
 
   const handleSaveStatusChange = () => {
@@ -345,8 +354,8 @@ export function InvoicesTable() {
                   Pasirinkite naują statusą
                 </label>
                 <Select
-                  value={statusChangeInvoice.status}
-                  onChange={(value) => handleStatusChange(value as keyof typeof INVOICE_STATUS)}
+                  value={statusChangeInvoice.status.toLowerCase()}
+                  onChange={(value) => handleStatusChange(value)}
                   options={[
                     { value: INVOICE_STATUS.PAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PAID] },
                     { value: INVOICE_STATUS.UNPAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.UNPAID] },
