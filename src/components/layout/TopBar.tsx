@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Menu, Plus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMediaQuery';
@@ -18,7 +18,6 @@ interface TopBarProps {
  */
 export function TopBar({ title: defaultTitle = 'Sąskaitų Sistema', onMenuClick, showActions = true }: TopBarProps) {
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
   const location = useLocation();
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [pageTitle, setPageTitle] = useState(defaultTitle);
@@ -39,7 +38,8 @@ export function TopBar({ title: defaultTitle = 'Sąskaitų Sistema', onMenuClick
   const shouldShowActions = showActions && location.pathname === '/invoices';
 
   const handleNewInvoice = () => {
-    navigate('/invoices/new');
+    // Open in new tab
+    window.open('/invoices/new', '_blank');
   };
 
   const handleAddClient = () => {
