@@ -55,7 +55,7 @@ export function StatisticsChart() {
     },
     {
       dataKey: 'unpaid',
-      name: 'Nesumokėtos',
+      name: 'Pradelstos',
       color: colors.chart.purple,
     },
     {

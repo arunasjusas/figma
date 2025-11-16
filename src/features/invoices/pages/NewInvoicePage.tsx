@@ -131,7 +131,7 @@ export default function NewInvoicePage() {
 
   const statusOptions = [
     { value: 'PENDING', label: 'Terminas nepasibaigęs' },
-    { value: 'UNPAID', label: 'Neapmokėta' },
+    { value: 'UNPAID', label: 'Pradelsta' },
     { value: 'PAID', label: 'Sumokėta' },
   ];
 
