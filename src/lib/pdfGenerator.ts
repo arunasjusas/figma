@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf';
 import type { Invoice } from './mockData';
-import { formatCurrency } from './utils';
 
 /**
  * Sanitize text by replacing Lithuanian and special characters with ASCII equivalents.
@@ -14,12 +13,21 @@ function sanitizeText(text: string | null | undefined): string {
     'Ą': 'A', 'Č': 'C', 'Ę': 'E', 'Ė': 'E', 'Į': 'I', 'Š': 'S', 'Ų': 'U', 'Ū': 'U', 'Ž': 'Z',
   };
   
-  let sanitized = text;
+  let sanitized = String(text);
   for (const [original, replacement] of Object.entries(replacements)) {
     sanitized = sanitized.replace(new RegExp(original, 'g'), replacement);
   }
   
   return sanitized;
+}
+
+/**
+ * Format currency for PDF (uses simple formatting without locale-specific characters)
+ */
+function formatCurrencyForPdf(amount: number): string {
+  // Use simple number formatting without locale to avoid encoding issues
+  const formatted = amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return `EUR ${formatted}`;
 }
 
 /**
@@ -122,7 +130,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   
   yPos += 6;
   doc.text('Paslaugos pagal sutarti', 25, yPos);
-  doc.text(sanitizeText(formatCurrency(invoice.amount)), 175, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPdf(invoice.amount), 175, yPos, { align: 'right' });
   
   yPos += 2;
   doc.line(20, yPos, 190, yPos);
@@ -138,14 +146,14 @@ export function generateInvoicePDF(invoice: Invoice): void {
   const amountWithoutVAT = invoice.amount / 1.21;
   doc.text('Suma be PVM:', summaryX, yPos);
   doc.setTextColor(textColor);
-  doc.text(sanitizeText(formatCurrency(amountWithoutVAT)), 185, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPdf(amountWithoutVAT), 185, yPos, { align: 'right' });
   
   // VAT
   yPos += 6;
   doc.setTextColor(grayColor);
   doc.text('PVM (21%):', summaryX, yPos);
   doc.setTextColor(textColor);
-  doc.text(sanitizeText(formatCurrency(invoice.amount - amountWithoutVAT)), 185, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPdf(invoice.amount - amountWithoutVAT), 185, yPos, { align: 'right' });
   
   // Total - with line
   yPos += 8;
@@ -160,7 +168,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(primaryColor);
-  doc.text(sanitizeText(formatCurrency(invoice.amount)), 185, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPdf(invoice.amount), 185, yPos, { align: 'right' });
   doc.setFont('helvetica', 'normal');
 
   // Paid and remaining amounts (if applicable)
@@ -170,13 +178,13 @@ export function generateInvoicePDF(invoice: Invoice): void {
     doc.setTextColor(grayColor);
     doc.text('Sumoketa:', summaryX, yPos);
     doc.setTextColor('#059669'); // Green
-    doc.text(sanitizeText(formatCurrency(invoice.paidAmount)), 185, yPos, { align: 'right' });
+    doc.text(formatCurrencyForPdf(invoice.paidAmount), 185, yPos, { align: 'right' });
     
     yPos += 6;
     doc.setTextColor(grayColor);
     doc.text('Likusi suma:', summaryX, yPos);
     doc.setTextColor('#dc2626'); // Red
-    doc.text(sanitizeText(formatCurrency(invoice.amount - invoice.paidAmount)), 185, yPos, { align: 'right' });
+    doc.text(formatCurrencyForPdf(invoice.amount - invoice.paidAmount), 185, yPos, { align: 'right' });
   }
 
   // Notes section (if applicable)
