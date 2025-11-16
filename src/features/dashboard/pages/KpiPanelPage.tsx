@@ -97,6 +97,7 @@ export default function KpiPanelPage() {
             data={letterStatsData}
             lines={chartLines}
             xAxisKey="month"
+            height={300}
           />
         </CardContent>
       </Card>
