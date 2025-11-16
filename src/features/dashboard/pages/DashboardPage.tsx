@@ -18,20 +18,10 @@ export default function DashboardPage() {
   // Calculate real KPI data
   const kpiData = useMemo(() => {
     const activeInvoices = getActiveInvoices();
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
 
-    // This month's revenue (PAID invoices)
-    const thisMonthRevenue = activeInvoices
-      .filter((inv) => {
-        const invDate = new Date(inv.date);
-        return (
-          inv.status === 'PAID' &&
-          invDate.getMonth() === currentMonth &&
-          invDate.getFullYear() === currentYear
-        );
-      })
+    // Total revenue from all PAID invoices (all paid invoices regardless of date)
+    const totalPaidRevenue = activeInvoices
+      .filter((inv) => inv.status === 'PAID')
       .reduce((sum, inv) => sum + inv.amount, 0);
 
     // Pradelsta invoices - all invoices with UNPAID status (matches invoice table logic)
@@ -43,7 +33,7 @@ export default function DashboardPage() {
     const aiReminders = 24;
 
     return {
-      thisMonthRevenue,
+      totalPaidRevenue,
       pradelstaCount,
       pradelstaTotal,
       aiReminders,
@@ -58,9 +48,8 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <KpiCard
-          label="Šį mėnesį"
           title="Gautos pajamos"
-          value={formatCurrency(kpiData.thisMonthRevenue)}
+          value={formatCurrency(kpiData.totalPaidRevenue)}
         />
         <KpiCard
           title="Pradelsta"
