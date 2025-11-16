@@ -13,6 +13,7 @@ import ResetPasswordPage from './features/auth/pages/ResetPasswordPage';
 import { lazy, Suspense } from 'react';
 
 const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage'));
+const KpiPanelPage = lazy(() => import('./features/dashboard/pages/KpiPanelPage'));
 const InvoicesListPage = lazy(() => import('./features/invoices/pages/InvoicesListPage'));
 const InvoiceDetailPage = lazy(() => import('./features/invoices/pages/InvoiceDetailPage'));
 const NewInvoicePage = lazy(() => import('./features/invoices/pages/NewInvoicePage'));
@@ -78,6 +79,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingFallback />}>
                 <DashboardPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="kpi-panel"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <KpiPanelPage />
               </Suspense>
             }
           />

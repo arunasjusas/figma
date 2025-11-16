@@ -75,6 +75,7 @@ export function StatisticsChart() {
           data={chartData}
           lines={lines}
           xAxisKey="month"
+          height={300}
         />
       </CardContent>
     </Card>

@@ -38,14 +38,15 @@ export function Sidebar() {
     {
       items: [
         { label: 'Peržiūra', path: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+        { label: 'KPI Panele', path: '/kpi-panel', icon: <LayoutDashboard className="w-5 h-5" /> },
         { label: 'Sąskaitos', path: '/invoices', icon: <FileText className="w-5 h-5" /> },
         { label: 'CSV Įkėlimas', path: '/csv-upload', icon: <Upload className="w-5 h-5" /> },
+        { label: 'AI Pagalba', path: '/ai-help', icon: <Bot className="w-5 h-5" />, badge: 'Beta' },
         { label: 'Šiukšliadėžė', path: '/recycle-bin', icon: <Trash2 className="w-5 h-5" /> },
       ],
     },
     {
       items: [
-        { label: 'AI Pagalba', path: '/ai-help', icon: <Bot className="w-5 h-5" />, badge: 'Beta' },
         { label: 'Nustatymai', path: '/settings', icon: <Settings className="w-5 h-5" /> },
         { label: 'Pagalba', path: '/help', icon: <HelpCircle className="w-5 h-5" /> },
         { label: 'Privatumo politika', path: '/privacy', icon: <Shield className="w-5 h-5" /> },

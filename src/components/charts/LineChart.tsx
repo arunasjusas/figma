@@ -9,15 +9,16 @@ interface LineChartProps {
     color: string;
   }>;
   xAxisKey: string;
+  height?: number;
 }
 
 /**
  * Line chart component using Recharts
  * Configured to match design system specifications
  */
-export function LineChart({ data, lines, xAxisKey }: LineChartProps) {
+export function LineChart({ data, lines, xAxisKey, height = 400 }: LineChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={height}>
       <RechartsLineChart
         data={data}
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
