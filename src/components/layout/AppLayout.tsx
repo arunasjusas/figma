@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { MobileSidebar } from './MobileSidebar';
 import { TopBar } from './TopBar';
@@ -16,6 +16,8 @@ interface AppLayoutProps {
 export function AppLayout({ pageTitle = 'Sąskaitų statistika', showActions = true }: AppLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const isDashboard = location.pathname === '/dashboard';
 
   return (
     <div className="min-h-screen">
@@ -38,7 +40,7 @@ export function AppLayout({ pageTitle = 'Sąskaitų statistika', showActions = t
           showActions={showActions}
         />
 
-        <main className="p-6">
+        <main className={`p-6 ${isDashboard ? 'bg-[#808080]' : ''}`}>
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
