@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { InvoiceStatusPill } from '@/components/shared/InvoiceStatusPill';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useMediaQuery';
@@ -12,6 +13,7 @@ import { Modal } from '@/components/ui/Modal';
 import type { Invoice } from '@/lib/mockData';
 import { useToastStore } from '@/components/ui/Toast';
 import { generateInvoicePDF } from '@/lib/pdfGenerator';
+import { INVOICE_STATUS, INVOICE_STATUS_LABELS } from '@/lib/constants';
 
 /**
  * Invoices table component
@@ -22,6 +24,7 @@ export function InvoicesTable() {
   const isMobile = useIsMobile();
   const allInvoices = useInvoiceStore((state) => state.invoices);
   const deleteInvoice = useInvoiceStore((state) => state.deleteInvoice);
+  const updateInvoice = useInvoiceStore((state) => state.updateInvoice);
   const addToast = useToastStore((state) => state.addToast);
 
   const { amountFrom, amountTo, searchNumber, searchClient, status } = useInvoiceFilterStore();
@@ -137,6 +140,15 @@ export function InvoicesTable() {
       client: selectedInvoice.client,
       subject: aiMessageSubject,
       body: aiMessageBody,
+    });
+  };
+
+  const handleStatusChange = (invoiceId: string, newStatus: keyof typeof INVOICE_STATUS) => {
+    updateInvoice(invoiceId, { status: newStatus });
+    addToast({
+      type: 'success',
+      title: 'Statusas atnaujintas',
+      message: 'Sąskaitos statusas sėkmingai pakeistas.',
     });
   };
 
@@ -301,7 +313,18 @@ export function InvoicesTable() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-lg">{invoice.number}</span>
-                  <InvoiceStatusPill status={invoice.status} />
+                </div>
+                <div>
+                  <Select
+                    value={invoice.status}
+                    onChange={(value) => handleStatusChange(invoice.id, value as keyof typeof INVOICE_STATUS)}
+                    options={[
+                      { value: INVOICE_STATUS.PAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PAID] },
+                      { value: INVOICE_STATUS.UNPAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.UNPAID] },
+                      { value: INVOICE_STATUS.PENDING, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PENDING] },
+                    ]}
+                    fullWidth
+                  />
                 </div>
                 <div className="text-sm text-gray-600">
                   <p><span className="font-medium">Data:</span> {formatDate(invoice.date)}</p>
@@ -359,7 +382,15 @@ export function InvoicesTable() {
               <TableCell className="text-right">{formatCurrency(invoice.amount)}</TableCell>
               <TableCell>{formatDate(invoice.dueDate)}</TableCell>
               <TableCell>
-                <InvoiceStatusPill status={invoice.status} />
+                <Select
+                  value={invoice.status}
+                  onChange={(value) => handleStatusChange(invoice.id, value as keyof typeof INVOICE_STATUS)}
+                  options={[
+                    { value: INVOICE_STATUS.PAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PAID] },
+                    { value: INVOICE_STATUS.UNPAID, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.UNPAID] },
+                    { value: INVOICE_STATUS.PENDING, label: INVOICE_STATUS_LABELS[INVOICE_STATUS.PENDING] },
+                  ]}
+                />
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">

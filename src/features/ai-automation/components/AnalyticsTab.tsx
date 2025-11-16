@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
 import { LineChart } from '@/components/charts/LineChart';
 import { formatDate } from '@/lib/utils';
 import { useAIAnalyticsStore } from '@/store/aiAnalyticsStore';
+import { useInvoiceStore } from '@/store/invoiceStore';
 import { AI_MESSAGE_STATUS, AI_MESSAGE_STATUS_LABELS } from '@/lib/constants';
 import { colors } from '@/lib/design-tokens';
 
@@ -14,21 +15,29 @@ import { colors } from '@/lib/design-tokens';
  */
 export function AnalyticsTab() {
   const { getAnalytics, getSendingActivity, getRecentMessages } = useAIAnalyticsStore();
+  const getActiveInvoices = useInvoiceStore((state) => state.getActiveInvoices);
   
-  // Get real analytics data
-  const analytics = getAnalytics();
-  const sendingActivityData = getSendingActivity();
-  const recentMessages = getRecentMessages(10);
-
-  // Refresh messages when component mounts or invoices change
-  useEffect(() => {
-    // Trigger regeneration by accessing the store
+  // Get real analytics data - use useMemo to ensure it updates when invoices change
+  const analytics = useMemo(() => {
+    // Ensure messages are generated from current invoices
     const store = useAIAnalyticsStore.getState();
-    if (store.messages.length === 0) {
-      // Messages will be auto-generated on first access
-      store.getSendingActivity();
-    }
-  }, []);
+    store.getMessages(); // This will regenerate if needed
+    return getAnalytics();
+  }, [getAnalytics, getActiveInvoices]);
+
+  const sendingActivityData = useMemo(() => {
+    // Ensure messages are generated from current invoices
+    const store = useAIAnalyticsStore.getState();
+    store.getMessages(); // This will regenerate if needed
+    return getSendingActivity();
+  }, [getSendingActivity, getActiveInvoices]);
+
+  const recentMessages = useMemo(() => {
+    // Ensure messages are generated from current invoices
+    const store = useAIAnalyticsStore.getState();
+    store.getMessages(); // This will regenerate if needed
+    return getRecentMessages(10);
+  }, [getRecentMessages, getActiveInvoices]);
 
   const chartLines = [
     {

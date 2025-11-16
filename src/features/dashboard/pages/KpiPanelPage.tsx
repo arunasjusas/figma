@@ -16,7 +16,7 @@ export default function KpiPanelPage() {
   usePageTitle('KPI Panele');
 
   const getActiveInvoices = useInvoiceStore((state) => state.getActiveInvoices);
-  const { getSendingActivity } = useAIAnalyticsStore();
+  const { getSendingActivity, getMessages } = useAIAnalyticsStore();
 
   // Calculate all KPI data
   const kpiData = useMemo(() => {
@@ -52,8 +52,8 @@ export default function KpiPanelPage() {
         )
       : 0;
 
-    // Sent reminders from AI analytics
-    const allMessages = useAIAnalyticsStore.getState().getMessages();
+    // Sent reminders from AI analytics - use real data
+    const allMessages = getMessages();
     const sentReminders = allMessages.length;
 
     return {
@@ -65,7 +65,7 @@ export default function KpiPanelPage() {
       pastDueCount,
       averageDelay,
     };
-  }, [getActiveInvoices]);
+  }, [getActiveInvoices, getMessages]);
 
   // Letter statistics data (sending activity)
   const letterStatsData = useMemo(() => {

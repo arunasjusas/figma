@@ -131,7 +131,7 @@ const getInitialMessages = (): AIMessage[] => {
  */
 export const useAIAnalyticsStore = create<AIAnalyticsStore>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       messages: getInitialMessages(),
 
       addMessage: (message) => {
@@ -153,15 +153,29 @@ export const useAIAnalyticsStore = create<AIAnalyticsStore>()(
       },
 
       getMessages: () => {
-        return get().messages;
+        // Always regenerate messages from current invoices to ensure fresh data
+        const messages = generateMessagesFromInvoices();
+        if (messages.length > 0) {
+          set({ messages });
+        }
+        return messages;
       },
 
       getRecentMessages: (limit = 10) => {
-        return get().messages.slice(0, limit);
+        // Always regenerate messages from current invoices to ensure fresh data
+        const messages = generateMessagesFromInvoices();
+        if (messages.length > 0) {
+          set({ messages });
+        }
+        return messages.slice(0, limit);
       },
 
       getAnalytics: () => {
-        const messages = get().messages;
+        // Always regenerate messages from current invoices to ensure fresh data
+        const messages = generateMessagesFromInvoices();
+        if (messages.length > 0) {
+          set({ messages });
+        }
         const totalSent = messages.length;
         const opened = messages.filter((m) => m.status === 'OPENED').length;
         
@@ -178,13 +192,10 @@ export const useAIAnalyticsStore = create<AIAnalyticsStore>()(
       },
 
       getSendingActivity: () => {
-        // Get current messages or regenerate from invoices
-        let messages = get().messages;
-        if (messages.length === 0) {
-          messages = generateMessagesFromInvoices();
-          if (messages.length > 0) {
-            set({ messages });
-          }
+        // Always regenerate messages from current invoices to ensure fresh data
+        const messages = generateMessagesFromInvoices();
+        if (messages.length > 0) {
+          set({ messages });
         }
         
         const now = new Date();
