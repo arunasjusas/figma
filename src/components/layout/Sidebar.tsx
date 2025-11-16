@@ -77,14 +77,14 @@ export function Sidebar() {
                     className={cn(
                       'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                       isActive(item.path)
-                        ? 'bg-primary/20 text-white'
+                        ? 'bg-gray-700 text-white'
                         : 'text-gray-300 hover:bg-gray-700'
                     )}
                   >
                     {item.icon}
                     <span className="flex-1">{item.label}</span>
                     {item.badge && (
-                      <span className="px-2 py-0.5 text-xs bg-primary/20 text-white rounded-full">
+                      <span className="px-2 py-0.5 text-xs bg-gray-700 text-white rounded-full">
                         {item.badge}
                       </span>
                     )}
@@ -106,7 +106,7 @@ export function Sidebar() {
                     className={cn(
                       'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                       isActive(item.path)
-                        ? 'bg-primary/20 text-white'
+                        ? 'bg-gray-700 text-white'
                         : 'text-gray-300 hover:bg-gray-700'
                     )}
                   >
