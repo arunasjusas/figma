@@ -5,6 +5,7 @@ import { StatisticsChart } from '../components/StatisticsChart';
 import { formatCurrency } from '@/lib/utils';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useInvoiceStore } from '@/store/invoiceStore';
+import { useAIAnalyticsStore } from '@/store/aiAnalyticsStore';
 
 /**
  * Dashboard page - "Peržiūra"
@@ -18,6 +19,8 @@ export default function DashboardPage() {
   // Calculate real KPI data
   const kpiData = useMemo(() => {
     const activeInvoices = getActiveInvoices();
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     // Total revenue from all PAID invoices (all paid invoices regardless of date)
     const totalPaidRevenue = activeInvoices
@@ -29,8 +32,12 @@ export default function DashboardPage() {
     const pradelstaCount = pradelstaInvoices.length;
     const pradelstaTotal = pradelstaInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
-    // AI reminders (mock for now - can be implemented later)
-    const aiReminders = 24;
+    // AI reminders - count messages sent in the last 7 days
+    const allMessages = useAIAnalyticsStore.getState().getMessages();
+    const aiReminders = allMessages.filter((msg) => {
+      const msgDate = new Date(msg.date);
+      return msgDate >= sevenDaysAgo && msgDate <= now;
+    }).length;
 
     return {
       totalPaidRevenue,
