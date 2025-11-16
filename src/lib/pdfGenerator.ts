@@ -1,21 +1,24 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { Invoice } from './mockData';
-import { formatCurrency, formatDate } from './utils';
+import { formatCurrency } from './utils';
 
 /**
  * Sanitize text by replacing Lithuanian and special characters with ASCII equivalents.
+ * Also removes any HTML entities to prevent & character issues.
  * This ensures jsPDF's default Helvetica font can render all text correctly.
  */
 function sanitizeText(text: string | null | undefined): string {
   if (!text) return '';
   
+  let sanitized = String(text);
+  
+  // Replace Lithuanian characters
   const replacements: Record<string, string> = {
     'ą': 'a', 'č': 'c', 'ę': 'e', 'ė': 'e', 'į': 'i', 'š': 's', 'ų': 'u', 'ū': 'u', 'ž': 'z',
     'Ą': 'A', 'Č': 'C', 'Ę': 'E', 'Ė': 'E', 'Į': 'I', 'Š': 'S', 'Ų': 'U', 'Ū': 'U', 'Ž': 'Z',
   };
   
-  let sanitized = String(text);
   for (const [original, replacement] of Object.entries(replacements)) {
     sanitized = sanitized.replace(new RegExp(original, 'g'), replacement);
   }
@@ -53,6 +56,10 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
   container.style.color = '#111827';
   container.style.fontSize = '14px';
   container.style.lineHeight = '1.5';
+  
+  // Ensure container has no HTML entities or encoding issues
+  container.setAttribute('lang', 'en');
+  container.setAttribute('dir', 'ltr');
 
   const statusLabel = sanitizeText(getStatusLabel(invoice.status));
   const amountWithoutVAT = invoice.amount / 1.21;
@@ -65,7 +72,11 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
   const createEl = (tag: string, styles: Record<string, string>, text?: string) => {
     const el = document.createElement(tag);
     Object.assign(el.style, styles);
-    if (text !== undefined) el.textContent = text;
+    if (text !== undefined) {
+      // Ensure text is sanitized and set directly as textContent (not innerHTML)
+      const cleanText = sanitizeText(text);
+      el.textContent = cleanText;
+    }
     return el;
   };
 
@@ -125,11 +136,11 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
   const issueDate = createEl('div', {
     fontSize: '12px',
     color: '#374151'
-  }, `Israsymo data: ${sanitizeText(formatDate(invoice.date))}`);
+  }, `Israsymo data: ${formatDateForPdf(invoice.date)}`);
   const dueDate = createEl('div', {
     fontSize: '12px',
     color: '#374151'
-  }, `Apmokejimo terminas: ${sanitizeText(formatDate(invoice.dueDate))}`);
+  }, `Apmokejimo terminas: ${formatDateForPdf(invoice.dueDate)}`);
   rightCol.appendChild(datosLabel);
   rightCol.appendChild(issueDate);
   rightCol.appendChild(dueDate);
@@ -314,6 +325,7 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 100));
 
   // Convert HTML to canvas with html2canvas
+  // Use onclone callback to sanitize all text nodes in the cloned document
   const canvas = await html2canvas(container, {
     scale: 2,
     useCORS: true,
@@ -323,6 +335,20 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
     height: container.scrollHeight,
     windowWidth: 794,
     windowHeight: container.scrollHeight,
+    onclone: (clonedDoc) => {
+      // Ensure all text nodes in the cloned document are properly sanitized
+      const allTextNodes = clonedDoc.createTreeWalker(
+        clonedDoc.body,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      let node;
+      while ((node = allTextNodes.nextNode())) {
+        if (node.textContent) {
+          node.textContent = sanitizeText(node.textContent);
+        }
+      }
+    },
   });
 
   // Remove container from DOM
