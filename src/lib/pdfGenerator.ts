@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import type { Invoice } from './mockData';
+import { formatCurrency, formatDate } from './utils';
 
 /**
  * Sanitize text by replacing Lithuanian and special characters with ASCII equivalents.
@@ -22,15 +23,6 @@ function sanitizeText(text: string | null | undefined): string {
 }
 
 /**
- * Format currency for PDF (uses simple formatting without locale-specific characters)
- */
-function formatCurrencyForPdf(amount: number): string {
-  // Use simple number formatting without locale to avoid encoding issues
-  const formatted = amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  return `EUR ${formatted}`;
-}
-
-/**
  * Simple date formatter for PDFs that avoids locale-specific characters.
  * Returns date as YYYY-MM-DD so jsPDF doesn't need to handle Lithuanian letters.
  */
@@ -43,184 +35,137 @@ function formatDateForPdf(date: string | Date): string {
 }
 
 /**
- * Generate and download invoice as PDF
- * Uses jsPDF library to create actual PDF files
+ * Generate and download invoice as PDF using HTML rendering.
+ * We render a styled HTML template and let jsPDF+html2canvas rasterize it.
+ * This avoids font encoding issues and preserves Lithuanian characters.
  */
 export function generateInvoicePDF(invoice: Invoice): void {
-  // Create new PDF document (A4 size)
+  // Create PDF
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
 
-  // Set font
-  doc.setFont('helvetica');
+  // Offscreen container for HTML content (A4 ~ 794px width at 96dpi)
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '-10000px';
+  container.style.top = '0';
+  container.style.width = '794px';
+  container.style.background = '#ffffff';
+  container.style.padding = '32px';
+  container.style.fontFamily = 'system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif';
+  container.style.color = '#111827';
 
-  // Colors
-  const primaryColor = '#2563eb';
-  const textColor = '#333333';
-  const grayColor = '#666666';
-
-  // Header - Title (ASCII-only text to avoid encoding issues)
-  doc.setFontSize(24);
-  doc.setTextColor(primaryColor);
-  doc.text('SASKAITA FAKTURA', 105, 20, { align: 'center' });
-
-  // Invoice Number
-  doc.setFontSize(12);
-  doc.setTextColor(grayColor);
-  doc.text(`Nr. ${invoice.number}`, 105, 28, { align: 'center' });
-
-  // Draw header line
-  doc.setDrawColor(37, 99, 235); // primaryColor
-  doc.setLineWidth(1);
-  doc.line(20, 32, 190, 32);
-
-  // Client Information
-  let yPos = 45;
-  doc.setFontSize(10);
-  doc.setTextColor(primaryColor);
-  doc.text('UZSAKOVAS', 20, yPos);
-  
-  doc.setFontSize(12);
-  doc.setTextColor(textColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text(sanitizeText(invoice.client), 20, yPos + 6);
-  doc.setFont('helvetica', 'normal');
-
-  // Dates
-  doc.setFontSize(10);
-  doc.setTextColor(primaryColor);
-  doc.text('DATOS', 105, yPos);
-  
-  doc.setFontSize(10);
-  doc.setTextColor(textColor);
-  doc.text(`Israsymo data: ${formatDateForPdf(invoice.date)}`, 105, yPos + 6);
-  doc.text(`Apmokejimo terminas: ${formatDateForPdf(invoice.dueDate)}`, 105, yPos + 12);
-
-  // Status
-  yPos += 25;
-  doc.setFontSize(10);
-  doc.setTextColor(primaryColor);
-  doc.text('STATUSAS', 20, yPos);
-  
-  doc.setFontSize(10);
   const statusLabel = getStatusLabel(invoice.status);
-  const statusColor = getStatusColor(invoice.status);
-  doc.setTextColor(statusColor);
-  doc.setFont('helvetica', 'bold');
-  doc.text(sanitizeText(statusLabel), 20, yPos + 6);
-  doc.setFont('helvetica', 'normal');
-
-  // Details Table
-  yPos += 20;
-  doc.setFontSize(10);
-  doc.setTextColor(255, 255, 255); // White text
-  doc.setFillColor(37, 99, 235); // Primary blue background
-  doc.rect(20, yPos, 170, 8, 'F');
-  doc.text('APRASYMAS', 25, yPos + 5.5);
-  doc.text('SUMA', 175, yPos + 5.5, { align: 'right' });
-
-  // Table row
-  yPos += 8;
-  doc.setTextColor(textColor);
-  doc.setDrawColor(229, 231, 235); // Light gray border
-  doc.line(20, yPos, 190, yPos);
-  
-  yPos += 6;
-  doc.text('Paslaugos pagal sutarti', 25, yPos);
-  doc.text(formatCurrencyForPdf(invoice.amount), 175, yPos, { align: 'right' });
-  
-  yPos += 2;
-  doc.line(20, yPos, 190, yPos);
-
-  // Summary section
-  yPos += 15;
-  const summaryX = 120;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(grayColor);
-  
-  // Amount without VAT
   const amountWithoutVAT = invoice.amount / 1.21;
-  doc.text('Suma be PVM:', summaryX, yPos);
-  doc.setTextColor(textColor);
-  doc.text(formatCurrencyForPdf(amountWithoutVAT), 185, yPos, { align: 'right' });
-  
-  // VAT
-  yPos += 6;
-  doc.setTextColor(grayColor);
-  doc.text('PVM (21%):', summaryX, yPos);
-  doc.setTextColor(textColor);
-  doc.text(formatCurrencyForPdf(invoice.amount - amountWithoutVAT), 185, yPos, { align: 'right' });
-  
-  // Total - with line
-  yPos += 8;
-  doc.setDrawColor(37, 99, 235);
-  doc.setLineWidth(0.5);
-  doc.line(summaryX, yPos - 2, 190, yPos - 2);
-  
-  yPos += 4;
-  doc.setFontSize(11);
-  doc.setTextColor(grayColor);
-  doc.text('Bendra suma:', summaryX, yPos);
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primaryColor);
-  doc.text(formatCurrencyForPdf(invoice.amount), 185, yPos, { align: 'right' });
-  doc.setFont('helvetica', 'normal');
+  const remaining = invoice.paidAmount !== undefined ? (invoice.amount - invoice.paidAmount) : undefined;
 
-  // Paid and remaining amounts (if applicable)
-  if (invoice.paidAmount !== undefined) {
-    yPos += 12;
-    doc.setFontSize(10);
-    doc.setTextColor(grayColor);
-    doc.text('Sumoketa:', summaryX, yPos);
-    doc.setTextColor('#059669'); // Green
-    doc.text(formatCurrencyForPdf(invoice.paidAmount), 185, yPos, { align: 'right' });
-    
-    yPos += 6;
-    doc.setTextColor(grayColor);
-    doc.text('Likusi suma:', summaryX, yPos);
-    doc.setTextColor('#dc2626'); // Red
-    doc.text(formatCurrencyForPdf(invoice.amount - invoice.paidAmount), 185, yPos, { align: 'right' });
-  }
+  container.innerHTML = `
+    <div>
+      <div style="text-align:center; color:#2563eb; font-weight:700; font-size:26px;">
+        Sąskaita faktūra
+      </div>
+      <div style="text-align:center; color:#6b7280; margin-top:6px;">
+        Nr. ${invoice.number}
+      </div>
+      <div style="height:2px; background:#2563eb; margin:16px 0 8px;"></div>
 
-  // Notes section (if applicable)
-  if (invoice.notes) {
-    yPos += 15;
-    doc.setFillColor(249, 250, 251); // Light gray background
-    doc.setDrawColor(37, 99, 235);
-    doc.setLineWidth(1);
-    doc.rect(20, yPos, 170, 0, 'S'); // Top border only
-    
-    yPos += 5;
-    doc.setFontSize(9);
-    doc.setTextColor(primaryColor);
-    doc.setFont('helvetica', 'bold');
-    doc.text('PASTABOS', 25, yPos);
-    doc.setFont('helvetica', 'normal');
-    
-    yPos += 5;
-    doc.setFontSize(9);
-    doc.setTextColor(grayColor);
-    const sanitizedNotes = sanitizeText(invoice.notes);
-    const notesLines = doc.splitTextToSize(sanitizedNotes, 160);
-    doc.text(notesLines, 25, yPos);
-  }
+      <div style="display:flex; gap:24px; margin-top:16px;">
+        <div style="flex:1;">
+          <div style="font-size:12px; color:#2563eb; margin-bottom:6px;">UŽSAKOVAS</div>
+          <div style="font-size:14px; font-weight:700;">${invoice.client}</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:12px; color:#2563eb; margin-bottom:6px;">DATOS</div>
+          <div style="font-size:12px; color:#374151;">Išrašymo data: ${formatDate(invoice.date)}</div>
+          <div style="font-size:12px; color:#374151;">Apmokėjimo terminas: ${formatDate(invoice.dueDate)}</div>
+        </div>
+      </div>
 
-  // Footer
-  doc.setFontSize(8);
-  doc.setTextColor(grayColor);
-  const footerText = `Saskaita sugeneruota automatiskai • ${formatDateForPdf(new Date())}`;
-  doc.text(footerText, 105, 280, { align: 'center' });
+      <div style="margin-top:20px;">
+        <div style="font-size:12px; color:#2563eb;">STATUSAS</div>
+        <div style="font-size:12px; font-weight:700; color:${getStatusColor(invoice.status)}; margin-top:4px;">
+          ${statusLabel}
+        </div>
+      </div>
 
-  // Generate filename
+      <div style="margin-top:24px; border-radius:4px; overflow:hidden; border:1px solid #e5e7eb;">
+        <div style="display:flex; justify-content:space-between; padding:8px 12px; background:#2563eb; color:#ffffff; font-weight:600;">
+          <div>APRAŠYMAS</div>
+          <div>SUMA</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:10px 12px; border-top:1px solid #e5e7eb; font-size:12px;">
+          <div>Paslaugos pagal sutartį</div>
+          <div>${formatCurrency(invoice.amount)}</div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px; display:flex; justify-content:flex-end;">
+        <div style="width:300px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:#6b7280;">
+            <div>Suma be PVM:</div>
+            <div style="color:#111827;">${formatCurrency(amountWithoutVAT)}</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:#6b7280;">
+            <div>PVM (21%):</div>
+            <div style="color:#111827;">${formatCurrency(invoice.amount - amountWithoutVAT)}</div>
+          </div>
+          <div style="height:2px; background:#2563eb; margin:10px 0 8px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:12px; color:#6b7280;">Bendra suma:</div>
+            <div style="font-size:16px; font-weight:700; color:#2563eb;">${formatCurrency(invoice.amount)}</div>
+          </div>
+          ${
+            invoice.paidAmount !== undefined
+              ? `<div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#6b7280;">
+                   <div>Sumokėta:</div>
+                   <div style="color:#059669; font-weight:600;">${formatCurrency(invoice.paidAmount)}</div>
+                 </div>
+                 <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:#6b7280;">
+                   <div>Likusi suma:</div>
+                   <div style="color:#dc2626; font-weight:600;">${formatCurrency(remaining || 0)}</div>
+                 </div>`
+              : ''
+          }
+        </div>
+      </div>
+
+      ${
+        invoice.notes
+          ? `<div style="margin-top:24px; border-top:1px solid #e5e7eb; padding-top:10px;">
+               <div style="font-size:12px; color:#2563eb; font-weight:700;">PASTABOS</div>
+               <div style="font-size:12px; color:#4b5563; margin-top:6px;">${invoice.notes}</div>
+             </div>`
+          : ''
+      }
+
+      <div style="text-align:center; margin-top:40px; font-size:10px; color:#6b7280;">
+        Sąskaita sugeneruota automatiškai • ${formatDateForPdf(new Date())}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(container);
+
   const filename = `Saskaita_${invoice.number}_${sanitizeText(invoice.client).replace(/\s+/g, '_')}.pdf`;
 
-  // Save the PDF
-  doc.save(filename);
+  // Render HTML to PDF; html2canvas is used internally by jsPDF.html
+  // We keep the callback style to preserve a void return type for this function.
+  doc.html(container, {
+    x: 10,
+    y: 10,
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    },
+    callback: () => {
+      doc.save(filename);
+      document.body.removeChild(container);
+    },
+  });
 }
 
 /**
