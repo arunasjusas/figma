@@ -1,6 +1,18 @@
 import jsPDF from 'jspdf';
 import type { Invoice } from './mockData';
-import { formatCurrency, formatDate } from './utils';
+import { formatCurrency } from './utils';
+
+/**
+ * Simple date formatter for PDFs that avoids locale-specific characters.
+ * Returns date as YYYY-MM-DD so jsPDF doesn't need to handle Lithuanian letters.
+ */
+function formatDateForPdf(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 /**
  * Generate and download invoice as PDF
@@ -22,10 +34,10 @@ export function generateInvoicePDF(invoice: Invoice): void {
   const textColor = '#333333';
   const grayColor = '#666666';
 
-  // Header - Title
+  // Header - Title (ASCII-only text to avoid encoding issues)
   doc.setFontSize(24);
   doc.setTextColor(primaryColor);
-  doc.text('SĄSKAITA FAKTŪRA', 105, 20, { align: 'center' });
+  doc.text('SASKAITA FAKTURA', 105, 20, { align: 'center' });
 
   // Invoice Number
   doc.setFontSize(12);
@@ -41,7 +53,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   let yPos = 45;
   doc.setFontSize(10);
   doc.setTextColor(primaryColor);
-  doc.text('UŽSAKOVAS', 20, yPos);
+  doc.text('UZSAKOVAS', 20, yPos);
   
   doc.setFontSize(12);
   doc.setTextColor(textColor);
@@ -56,8 +68,8 @@ export function generateInvoicePDF(invoice: Invoice): void {
   
   doc.setFontSize(10);
   doc.setTextColor(textColor);
-  doc.text(`Išrašymo data: ${formatDate(invoice.date)}`, 105, yPos + 6);
-  doc.text(`Apmokėjimo terminas: ${formatDate(invoice.dueDate)}`, 105, yPos + 12);
+  doc.text(`Israsymo data: ${formatDateForPdf(invoice.date)}`, 105, yPos + 6);
+  doc.text(`Apmokejimo terminas: ${formatDateForPdf(invoice.dueDate)}`, 105, yPos + 12);
 
   // Status
   yPos += 25;
@@ -79,7 +91,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   doc.setTextColor(255, 255, 255); // White text
   doc.setFillColor(37, 99, 235); // Primary blue background
   doc.rect(20, yPos, 170, 8, 'F');
-  doc.text('APRAŠYMAS', 25, yPos + 5.5);
+  doc.text('APRASYMAS', 25, yPos + 5.5);
   doc.text('SUMA', 175, yPos + 5.5, { align: 'right' });
 
   // Table row
@@ -89,7 +101,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   doc.line(20, yPos, 190, yPos);
   
   yPos += 6;
-  doc.text('Paslaugos pagal sutartį', 25, yPos);
+  doc.text('Paslaugos pagal sutarti', 25, yPos);
   doc.text(formatCurrency(invoice.amount), 175, yPos, { align: 'right' });
   
   yPos += 2;
@@ -136,7 +148,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
     yPos += 12;
     doc.setFontSize(10);
     doc.setTextColor(grayColor);
-    doc.text('Sumokėta:', summaryX, yPos);
+    doc.text('Sumoketa:', summaryX, yPos);
     doc.setTextColor('#059669'); // Green
     doc.text(formatCurrency(invoice.paidAmount), 185, yPos, { align: 'right' });
     
@@ -172,7 +184,7 @@ export function generateInvoicePDF(invoice: Invoice): void {
   // Footer
   doc.setFontSize(8);
   doc.setTextColor(grayColor);
-  const footerText = `Sąskaita sugeneruota automatiškai • ${new Date().toLocaleDateString('lt-LT')}`;
+  const footerText = `Saskaita sugeneruota automatiskai • ${formatDateForPdf(new Date())}`;
   doc.text(footerText, 105, 280, { align: 'center' });
 
   // Generate filename
@@ -183,16 +195,16 @@ export function generateInvoicePDF(invoice: Invoice): void {
 }
 
 /**
- * Get status label in Lithuanian
+ * Get status label in Lithuanian (ASCII-only for PDF safety)
  */
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    'PAID': 'Apmokėta',
-    'paid': 'Apmokėta',
+    'PAID': 'Apmoketa',
+    'paid': 'Apmoketa',
     'UNPAID': 'Pradelsta',
     'unpaid': 'Pradelsta',
-    'PENDING': 'Terminas nepasibaigęs',
-    'pending': 'Terminas nepasibaigęs',
+    'PENDING': 'Terminas nepasibaiges',
+    'pending': 'Terminas nepasibaiges',
   };
   return labels[status] || status;
 }
