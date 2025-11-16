@@ -31,7 +31,7 @@ export function AppLayout({ pageTitle = 'Sąskaitų statistika', showActions = t
       )}
 
       {/* Main Content */}
-      <div className={!isMobile ? 'ml-60 bg-[#808080] min-h-screen' : ''}>
+      <div className={!isMobile ? 'ml-60 min-h-screen' : ''}>
         <TopBar
           title={pageTitle}
           onMenuClick={() => setIsMobileMenuOpen(true)}
