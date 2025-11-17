@@ -172,13 +172,18 @@
   console.log(`   Total Clients: ${exportData.totalClients}`);
   
   console.log('%c📋 Copy the JSON below:', 'color: #EF4444; font-size: 14px; font-weight: bold;');
-  console.log(JSON.stringify(exportData, null, 2));
+  const jsonOutput = JSON.stringify(exportData, null, 2);
+  console.log(jsonOutput);
   
-  // Also copy to clipboard if possible
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(JSON.stringify(exportData, null, 2)).then(() => {
+  // Try to copy to clipboard (may fail if document not focused - that's OK)
+  if (navigator.clipboard && document.hasFocus()) {
+    navigator.clipboard.writeText(jsonOutput).then(() => {
       console.log('%c✅ Data copied to clipboard!', 'color: #10B981; font-size: 14px; font-weight: bold;');
+    }).catch(() => {
+      console.log('%c💡 Tip: Select and copy the JSON above manually', 'color: #F59E0B; font-size: 14px;');
     });
+  } else {
+    console.log('%c💡 Tip: Select and copy the JSON above manually', 'color: #F59E0B; font-size: 14px;');
   }
   
   return exportData;
