@@ -149,7 +149,7 @@ export function Select({
         {isOpen && !disabled && (
           <div
             ref={dropdownRef}
-            className="absolute z-50 w-full mt-1 bg-white border border-neutral-border rounded-lg shadow-lg overflow-hidden dropdown-fade-in"
+            className="absolute z-[100] w-full mt-1 bg-white border border-neutral-border rounded-lg shadow-lg overflow-hidden dropdown-fade-in"
             style={{ 
               maxHeight: options.length <= 4 ? 'none' : '240px',
               overflowY: options.length <= 4 ? 'visible' : 'auto'

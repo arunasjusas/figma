@@ -362,7 +362,7 @@ export function InvoicesTable() {
           isOpen={isStatusModalOpen}
           onClose={handleCloseStatusModal}
           title="Keisti sąskaitos statusą"
-          size="md"
+          size="xl"
         >
           {statusChangeInvoice && (
             <div className="space-y-4">
