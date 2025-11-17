@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { AreaChart } from '@/components/charts/AreaChart';
 import { useInvoiceStore } from '@/store/invoiceStore';
+import { colors } from '@/lib/design-tokens';
 
 /**
  * Statistics chart component for dashboard
@@ -47,27 +48,27 @@ export function StatisticsChart() {
     return months;
   }, [getActiveInvoices]);
 
-  // Colors matching the photo: green for paid, blue for unpaid, light blue/purple for pending
+  // Colors from status colors: green for paid, red for unpaid, blue for pending
   const areas = [
     {
       dataKey: 'paid',
       name: 'Sumokėtos',
-      strokeColor: '#10B981', // Vibrant green
-      fillColor: '#10B981',
+      strokeColor: colors.status.paid, // Green
+      fillColor: colors.status.paid,
       fillGradientId: 'colorPaid',
     },
     {
       dataKey: 'unpaid',
-      name: 'Nesumokėtos',
-      strokeColor: '#0A61C4', // Standard blue
-      fillColor: '#0A61C4',
+      name: 'Pradelsta',
+      strokeColor: colors.status.unpaid, // Red
+      fillColor: colors.status.unpaid,
       fillGradientId: 'colorUnpaid',
     },
     {
       dataKey: 'pending',
       name: 'Terminas Nepasibaigęs',
-      strokeColor: '#664DFF', // Light blue with purplish tint
-      fillColor: '#664DFF',
+      strokeColor: colors.status.pending, // Blue
+      fillColor: colors.status.pending,
       fillGradientId: 'colorPending',
     },
   ];
