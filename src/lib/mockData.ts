@@ -45,7 +45,7 @@ export interface AIMessage {
   status: 'SENT' | 'OPENED' | 'NOT_DELIVERED';
 }
 
-// Mock invoices
+// Mock invoices - 8 total invoices with 5 deleted (3 active)
 export const mockInvoices: Invoice[] = [
   {
     id: '1',
@@ -55,6 +55,7 @@ export const mockInvoices: Invoice[] = [
     amount: 250.00,
     status: 'UNPAID',
     dueDate: '2025-11-01',
+    deleted: false,
   },
   {
     id: '2',
@@ -65,6 +66,7 @@ export const mockInvoices: Invoice[] = [
     status: 'PAID',
     dueDate: '2025-11-02',
     paidAmount: 450.00,
+    deleted: false,
   },
   {
     id: '3',
@@ -80,6 +82,7 @@ export const mockInvoices: Invoice[] = [
       url: '#',
     },
     notes: 'Klientui buvo išsiųstas priminimas 2025-11-05. Mokėjimo terminas vis dar aktyvus.',
+    deleted: false,
   },
   {
     id: '4',
@@ -90,6 +93,8 @@ export const mockInvoices: Invoice[] = [
     status: 'PAID',
     dueDate: '2025-11-05',
     paidAmount: 680.00,
+    deleted: true,
+    deletedAt: '2025-11-10T10:00:00.000Z',
   },
   {
     id: '5',
@@ -99,6 +104,8 @@ export const mockInvoices: Invoice[] = [
     amount: 1200.00,
     status: 'UNPAID',
     dueDate: '2025-11-10',
+    deleted: true,
+    deletedAt: '2025-11-12T14:30:00.000Z',
   },
   {
     id: '6',
@@ -108,6 +115,31 @@ export const mockInvoices: Invoice[] = [
     amount: 350.00,
     status: 'PENDING',
     dueDate: '2025-12-01',
+    deleted: true,
+    deletedAt: '2025-11-15T09:15:00.000Z',
+  },
+  {
+    id: '7',
+    number: 'SF-107',
+    date: '2025-10-20',
+    client: 'UAB Konstrukcija',
+    amount: 890.00,
+    status: 'PAID',
+    dueDate: '2025-11-20',
+    paidAmount: 890.00,
+    deleted: true,
+    deletedAt: '2025-11-18T11:20:00.000Z',
+  },
+  {
+    id: '8',
+    number: 'SF-108',
+    date: '2025-10-25',
+    client: 'MB Logistika',
+    amount: 520.00,
+    status: 'UNPAID',
+    dueDate: '2025-11-25',
+    deleted: true,
+    deletedAt: '2025-11-20T16:45:00.000Z',
   },
 ];
 
