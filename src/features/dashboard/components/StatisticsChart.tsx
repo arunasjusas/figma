@@ -13,6 +13,8 @@ export function StatisticsChart() {
   const getActiveInvoices = useInvoiceStore((state) => state.getActiveInvoices);
 
   // Generate chart data from real invoices
+  // Shows cumulative totals: for each month, shows all invoices created up to that month
+  // with their current status. This way, current month shows all current invoices.
   const chartData = useMemo(() => {
     const activeInvoices = getActiveInvoices();
     const now = new Date();
@@ -24,18 +26,20 @@ export function StatisticsChart() {
       const date = new Date(currentYear, now.getMonth() - i, 1);
       const monthName = date.toLocaleDateString('lt-LT', { month: 'short' });
       
-      // Count invoices by status for this month
-      const monthInvoices = activeInvoices.filter((inv) => {
+      // Get end of this month
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+      
+      // Count all invoices created on or before the end of this month
+      // Using their current status (since we don't track status history)
+      const invoicesUpToMonth = activeInvoices.filter((inv) => {
         const invDate = new Date(inv.date);
-        return (
-          invDate.getMonth() === date.getMonth() &&
-          invDate.getFullYear() === date.getFullYear()
-        );
+        return invDate <= monthEnd;
       });
 
-      const paid = monthInvoices.filter((inv) => inv.status === 'PAID').length;
-      const unpaid = monthInvoices.filter((inv) => inv.status === 'UNPAID').length;
-      const pending = monthInvoices.filter((inv) => inv.status === 'PENDING').length;
+      // Count by current status
+      const paid = invoicesUpToMonth.filter((inv) => inv.status === 'PAID').length;
+      const unpaid = invoicesUpToMonth.filter((inv) => inv.status === 'UNPAID').length;
+      const pending = invoicesUpToMonth.filter((inv) => inv.status === 'PENDING').length;
 
       months.push({
         month: monthName.charAt(0).toUpperCase() + monthName.slice(1),
