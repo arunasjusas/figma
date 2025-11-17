@@ -18,15 +18,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+          'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
           'disabled:pointer-events-none disabled:opacity-50',
           {
-            // Variants
-            'bg-primary text-white hover:bg-white hover:text-primary hover:border hover:border-primary': variant === 'primary',
-            'bg-gray-100 text-gray-900 hover:bg-white hover:border hover:border-neutral-border': variant === 'secondary',
-            'border border-primary text-primary hover:bg-primary/10': variant === 'outline',
-            'text-gray-700 hover:bg-gray-100': variant === 'ghost',
+            // Variants - using transparent borders to prevent layout shift
+            'bg-primary text-white border-2 border-transparent hover:bg-white hover:text-primary hover:border-primary': variant === 'primary',
+            'bg-gray-100 text-gray-900 border-2 border-transparent hover:bg-white hover:border-neutral-border': variant === 'secondary',
+            'border-2 border-primary text-primary bg-transparent hover:bg-primary/10': variant === 'outline',
+            'border-2 border-transparent text-gray-700 hover:bg-gray-100': variant === 'ghost',
             
             // Sizes
             'h-8 px-3 text-sm': size === 'sm',
