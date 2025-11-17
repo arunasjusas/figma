@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Figma Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0A61C4;
+            margin-bottom: 10px;
+        }
+        .instructions {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #0A61C4;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 4px;
+        }
+        .step-number {
+            display: inline-block;
+            background: #0A61C4;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        button {
+            background: #0A61C4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #084a9a;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Export Figma Data to Supabase</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Open your app at <strong>https://figma-xi-seven.vercel.app/</strong>
+            </div>
+            <div class="step">
+                <span class="step-number">2</span>
+                Open browser console (F12 → Console tab)
+            </div>
+            <div class="step">
+                <span class="step-number">3</span>
+                Copy and paste the script below into the console, then press Enter
+            </div>
+            <div class="step">
+                <span class="step-number">4</span>
+                Copy the exported JSON data and paste it into the textarea below
+            </div>
+            <div class="step">
+                <span class="step-number">5</span>
+                Click "Seed to Supabase" button
+            </div>
+        </div>
+
+        <div class="info">
+            <strong>Console Script to Run:</strong>
+            <textarea id="consoleScript" readonly>
+// Export Figma Data Script
+(function() {
+  console.log('%c📦 Exporting Figma Data...', 'color: #0A61C4; font-size: 16px; font-weight: bold;');
+  
+  // Export invoices
+  const invoiceStorage = localStorage.getItem('invoice-storage');
+  let invoices = [];
+  if (invoiceStorage) {
+    try {
+      const parsed = JSON.parse(invoiceStorage);
+      invoices = parsed.state?.invoices || [];
+      console.log(`✅ Found ${invoices.length} invoices`);
+    } catch (e) {
+      console.error('❌ Error parsing invoices:', e);
+    }
+  }
+  
+  // Export clients
+  const clientStorage = localStorage.getItem('client-storage');
+  let clients = [];
+  if (clientStorage) {
+    try {
+      const parsed = JSON.parse(clientStorage);
+      clients = parsed.state?.clients || [];
+      console.log(`✅ Found ${clients.length} clients`);
+    } catch (e) {
+      console.error('❌ Error parsing clients:', e);
+    }
+  }
+  
+  // Create export object
+  const exportData = {
+    invoices: invoices,
+    clients: clients,
+    exportedAt: new Date().toISOString(),
+    totalInvoices: invoices.length,
+    activeInvoices: invoices.filter(i => !i.deleted).length,
+    deletedInvoices: invoices.filter(i => i.deleted).length,
+    totalClients: clients.length
+  };
+  
+  console.log('%c📊 Export Summary:', 'color: #10B981; font-size: 14px; font-weight: bold;');
+  console.log(`   Total Invoices: ${exportData.totalInvoices}`);
+  console.log(`   Active: ${exportData.activeInvoices}`);
+  console.log(`   Deleted: ${exportData.deletedInvoices}`);
+  console.log(`   Total Clients: ${exportData.totalClients}`);
+  
+  console.log('%c📋 Copy the JSON below:', 'color: #EF4444; font-size: 14px; font-weight: bold;');
+  console.log(JSON.stringify(exportData, null, 2));
+  
+  // Also copy to clipboard if possible
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(JSON.stringify(exportData, null, 2)).then(() => {
+      console.log('%c✅ Data copied to clipboard!', 'color: #10B981; font-size: 14px; font-weight: bold;');
+    });
+  }
+  
+  return exportData;
+})();
+            </textarea>
+            <button onclick="copyConsoleScript()">📋 Copy Console Script</button>
+        </div>
+
+        <h3>Paste Exported Data Here:</h3>
+        <textarea id="exportedData" placeholder='Paste the JSON data exported from console here...'></textarea>
+        
+        <div id="status"></div>
+        
+        <button onclick="seedToSupabase()">🚀 Seed to Supabase</button>
+        <button onclick="validateData()">✅ Validate Data</button>
+    </div>
+
+    <script>
+        function copyConsoleScript() {
+            const script = document.getElementById('consoleScript').value;
+            navigator.clipboard.writeText(script).then(() => {
+                alert('✅ Console script copied to clipboard!');
+            });
+        }
+
+        function validateData() {
+            const data = document.getElementById('exportedData').value;
+            const statusDiv = document.getElementById('status');
+            
+            if (!data.trim()) {
+                statusDiv.innerHTML = '<div class="error">❌ Please paste the exported data first</div>';
+                return;
+            }
+            
+            try {
+                const parsed = JSON.parse(data);
+                const invoiceCount = parsed.invoices?.length || 0;
+                const clientCount = parsed.clients?.length || 0;
+                const activeInvoices = parsed.invoices?.filter(i => !i.deleted).length || 0;
+                const deletedInvoices = parsed.invoices?.filter(i => i.deleted).length || 0;
+                
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Data is valid!<br>
+                        📄 Invoices: ${invoiceCount} total (${activeInvoices} active, ${deletedInvoices} deleted)<br>
+                        📦 Clients: ${clientCount}
+                    </div>
+                `;
+            } catch (e) {
+                statusDiv.innerHTML = `<div class="error">❌ Invalid JSON: ${e.message}</div>`;
+            }
+        }
+
+        async function seedToSupabase() {
+            const data = document.getElementById('exportedData').value;
+            const statusDiv = document.getElementById('status');
+            
+            if (!data.trim()) {
+                statusDiv.innerHTML = '<div class="error">❌ Please paste the exported data first</div>';
+                return;
+            }
+            
+            let parsed;
+            try {
+                parsed = JSON.parse(data);
+            } catch (e) {
+                statusDiv.innerHTML = `<div class="error">❌ Invalid JSON: ${e.message}</div>`;
+                return;
+            }
+            
+            statusDiv.innerHTML = '<div class="info">⏳ Seeding data to Supabase... This may take a moment.</div>';
+            
+            // Create seed script content
+            const seedScript = generateSeedScript(parsed);
+            
+            // Download as file
+            const blob = new Blob([seedScript], { type: 'text/typescript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'seed-current-data.ts';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            statusDiv.innerHTML = `
+                <div class="success">
+                    ✅ Seed script generated and downloaded!<br><br>
+                    <strong>Next steps:</strong><br>
+                    1. Save the downloaded file to: <code>figma/scripts/seed-current-data.ts</code><br>
+                    2. Run: <code>npx tsx scripts/seed-current-data.ts</code><br>
+                    3. Everyone will see your current data! 🎉
+                </div>
+            `;
+        }
+
+        function generateSeedScript(data) {
+            return `/**
+ * Auto-generated seed script from exported localStorage data
+ * Generated: ${new Date().toISOString()}
+ * 
+ * Run: npx tsx scripts/seed-current-data.ts
+ */
+
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://ddtdyacwcaihupjkswoy.supabase.co';
+const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkdGR5YWN3Y2FpaHVwamtzd295Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzM3NzEzOCwiZXhwIjoyMDc4OTUzMTM4fQ.2iAhhev0QfPve8jg6dXAAoROCxcx9zdKZ_LjZoZ39Rg';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+// Exported invoices data
+const invoices = ${JSON.stringify(data.invoices || [], null, 2)};
+
+// Exported clients data
+const clients = ${JSON.stringify(data.clients || [], null, 2)};
+
+async function seedDatabase() {
+  console.log('🌱 Seeding database with exported data...\\n');
+  console.log(\`📄 Invoices: \${invoices.length} total\`);
+  console.log(\`   - Active: \${invoices.filter(i => !i.deleted).length}\`);
+  console.log(\`   - Deleted: \${invoices.filter(i => i.deleted).length}\`);
+  console.log(\`📦 Clients: \${clients.length}\\n\`);
+
+  // Seed invoices
+  if (invoices.length > 0) {
+    console.log('📄 Seeding invoices...');
+    const invoicesToInsert = invoices.map((invoice: any) => ({
+      id: invoice.id,
+      number: invoice.number,
+      date: invoice.date,
+      client: invoice.client,
+      amount: invoice.amount.toString(),
+      status: invoice.status,
+      due_date: invoice.dueDate,
+      paid_amount: invoice.paidAmount?.toString() || '0',
+      attachment_name: invoice.attachment?.name || null,
+      attachment_url: invoice.attachment?.url || null,
+      notes: invoice.notes || null,
+      deleted: invoice.deleted || false,
+      deleted_at: invoice.deletedAt || null,
+    }));
+
+    const { error: invoicesError } = await supabase
+      .from('invoices')
+      .upsert(invoicesToInsert, { onConflict: 'id' });
+
+    if (invoicesError) {
+      console.error('❌ Error seeding invoices:', invoicesError);
+    } else {
+      console.log(\`✅ Successfully seeded \${invoices.length} invoices\`);
+    }
+  }
+
+  // Seed clients
+  if (clients.length > 0) {
+    console.log('\\n📦 Seeding clients...');
+    const clientsToInsert = clients.map((client: any) => ({
+      id: client.id,
+      name: client.name,
+      email: client.email,
+      phone: client.phone,
+      address: client.address || null,
+      tax_id: client.taxId || null,
+      notes: client.notes || null,
+    }));
+
+    const { error: clientsError } = await supabase
+      .from('clients')
+      .upsert(clientsToInsert, { onConflict: 'id' });
+
+    if (clientsError) {
+      console.error('❌ Error seeding clients:', clientsError);
+    } else {
+      console.log(\`✅ Successfully seeded \${clients.length} clients\`);
+    }
+  }
+
+  console.log('\\n🎉 Database seeding completed!');
+  console.log('✅ Everyone will now see the same data you exported');
+  console.log('✅ All changes will sync in real-time across all users');
+}
+
+seedDatabase().catch(console.error);
+`;
+        }
+    </script>
+</body>
+</html>
+
