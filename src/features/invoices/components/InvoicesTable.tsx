@@ -406,7 +406,7 @@ export function InvoicesTable() {
                 </div>
                 <div className="pt-2 flex gap-2">
                   <Button 
-                    variant="outline" 
+                    variant="primary" 
                     size="sm" 
                     className="flex-1"
                     onClick={() => handleViewDetails(invoice)}
@@ -467,7 +467,7 @@ export function InvoicesTable() {
               <TableCell>
                 <div className="flex gap-2">
                   <Button 
-                    variant="ghost" 
+                    variant="primary" 
                     size="sm"
                     onClick={() => handleViewDetails(invoice)}
                   >
