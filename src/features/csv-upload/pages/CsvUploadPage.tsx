@@ -114,7 +114,7 @@ export default function CsvUploadPage() {
             });
             
             // Add new clients that don't exist yet
-            uniqueClientNames.forEach((clientNameLower) => {
+            for (const clientNameLower of uniqueClientNames) {
               const clientExists = clients.some(
                 (c) => c.name.toLowerCase() === clientNameLower
               );
@@ -132,10 +132,10 @@ export default function CsvUploadPage() {
                   phone: '', // CSV doesn't have phone, can be added later
                 });
               }
-            });
+            }
             
             // Check for duplicates and add only new invoices
-            result.data.forEach((invoiceData) => {
+            for (const invoiceData of result.data) {
               // Check if invoice with same number already exists
               const isDuplicate = allInvoices.some(
                 (existingInv) => existingInv.number.toLowerCase() === invoiceData.number.toLowerCase()
@@ -151,7 +151,7 @@ export default function CsvUploadPage() {
                 totalImported++;
                 newOnes.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
               }
-            });
+            }
           }
 
           if (result.errors.length > 0) {
@@ -163,7 +163,7 @@ export default function CsvUploadPage() {
 
           if (result.success && result.data.length > 0) {
             // Check for duplicates and add only new clients
-            result.data.forEach((clientData) => {
+            for (const clientData of result.data) {
               // Check if client with same name already exists (case-insensitive)
               const isDuplicate = clients.some(
                 (existingClient) => existingClient.name.toLowerCase() === clientData.name.toLowerCase()
@@ -185,7 +185,7 @@ export default function CsvUploadPage() {
                 totalImported++;
                 newClientNames.push(clientData.name);
               }
-            });
+            }
           }
 
           if (result.errors.length > 0) {
