@@ -173,3 +173,122 @@ export function generateSampleCSV(): string {
   return [header, ...examples].join('\n');
 }
 
+/**
+ * Parsed Client interface
+ */
+export interface ParsedClient {
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  taxId?: string;
+}
+
+export interface ParseClientResult {
+  success: boolean;
+  data: ParsedClient[];
+  errors: string[];
+  totalRows: number;
+  successCount: number;
+  errorCount: number;
+}
+
+/**
+ * Parse client CSV file content
+ */
+export async function parseClientCSVFile(file: File): Promise<ParseClientResult> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const result = parseClientCSVText(text);
+      resolve(result);
+    };
+
+    reader.onerror = () => {
+      resolve({
+        success: false,
+        data: [],
+        errors: ['Nepavyko perskaityti failo'],
+        totalRows: 0,
+        successCount: 0,
+        errorCount: 1,
+      });
+    };
+
+    reader.readAsText(file);
+  });
+}
+
+/**
+ * Parse client CSV text content
+ * Expected format: name,email,phone,address,taxId
+ * Example: MB Balttech,info@balttech.lt,+370 600 11111,Vilnius,123456789
+ */
+function parseClientCSVText(text: string): ParseClientResult {
+  const lines = text.split('\n').filter(line => line.trim());
+  
+  if (lines.length === 0) {
+    return {
+      success: false,
+      data: [],
+      errors: ['Failas tuščias'],
+      totalRows: 0,
+      successCount: 0,
+      errorCount: 1,
+    };
+  }
+
+  const data: ParsedClient[] = [];
+  const errors: string[] = [];
+
+  // Skip header row
+  const dataLines = lines.slice(1);
+
+  dataLines.forEach((line, index) => {
+    try {
+      const client = parseClientCSVLine(line, index + 2);
+      if (client) {
+        data.push(client);
+      }
+    } catch (error) {
+      errors.push(`Eilutė ${index + 2}: ${error instanceof Error ? error.message : 'Nežinoma klaida'}`);
+    }
+  });
+
+  return {
+    success: data.length > 0,
+    data,
+    errors,
+    totalRows: dataLines.length,
+    successCount: data.length,
+    errorCount: errors.length,
+  };
+}
+
+/**
+ * Parse a single client CSV line
+ * Expected format: name,email,phone,address,taxId
+ */
+function parseClientCSVLine(line: string, _lineNumber: number): ParsedClient | null {
+  const values = line.split(',').map(v => v.trim());
+
+  if (values.length < 1) {
+    throw new Error('Nepakanka stulpelių (reikia mažiausiai 1 - kliento vardas)');
+  }
+
+  const [name, email, phone, address, taxId] = values;
+
+  // Validate required field
+  if (!name) throw new Error('Trūksta kliento vardo');
+
+  return {
+    name,
+    email: email || undefined,
+    phone: phone || undefined,
+    address: address || undefined,
+    taxId: taxId || undefined,
+  };
+}
+

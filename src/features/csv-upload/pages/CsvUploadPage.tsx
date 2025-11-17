@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { FileUploadArea } from '@/components/shared/FileUploadArea';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { CheckCircle, XCircle, Download, X } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { parseCSVFile, generateSampleCSV } from '@/lib/csvParser';
+import { parseCSVFile, generateSampleCSV, parseClientCSVFile } from '@/lib/csvParser';
 import { useInvoiceStore } from '@/store/invoiceStore';
 import { useClientStore } from '@/store/clientStore';
 import { useToastStore } from '@/components/ui/Toast';
@@ -32,6 +33,8 @@ export default function CsvUploadPage() {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [duplicateInvoices, setDuplicateInvoices] = useState<string[]>([]);
   const [newInvoices, setNewInvoices] = useState<string[]>([]);
+  const [duplicateClients, setDuplicateClients] = useState<string[]>([]);
+  const [newClients, setNewClients] = useState<string[]>([]);
 
   const addInvoice = useInvoiceStore((state) => state.addInvoice);
   const allInvoices = useInvoiceStore((state) => state.invoices);
@@ -66,11 +69,11 @@ export default function CsvUploadPage() {
       return;
     }
 
-    if (fileType !== 'invoices') {
+    if (fileType !== 'invoices' && fileType !== 'clients') {
       addToast({
         type: 'error',
         title: 'Įkėlimas nesėkmingas',
-        message: 'Šiuo metu palaikomas tik sąskaitų importas',
+        message: 'Prašome pasirinkti failo tipą',
       });
       return;
     }
@@ -80,6 +83,8 @@ export default function CsvUploadPage() {
     setErrorMessages([]);
     setDuplicateInvoices([]);
     setNewInvoices([]);
+    setDuplicateClients([]);
+    setNewClients([]);
     setSkippedCount(0);
 
     try {
@@ -88,6 +93,8 @@ export default function CsvUploadPage() {
       const allErrors: string[] = [];
       const duplicates: string[] = [];
       const newOnes: string[] = [];
+      const duplicateClientNames: string[] = [];
+      const newClientNames: string[] = [];
 
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
@@ -95,59 +102,95 @@ export default function CsvUploadPage() {
         // Update progress
         setImportProgress(Math.round(((i + 0.5) / selectedFiles.length) * 100));
 
-        // Parse CSV file
-        const result = await parseCSVFile(file.file);
+        if (fileType === 'invoices') {
+          // Parse invoice CSV file
+          const result = await parseCSVFile(file.file);
 
-        if (result.success && result.data.length > 0) {
-          // Collect unique client names from CSV
-          const uniqueClientNames = new Set<string>();
-          result.data.forEach((invoiceData) => {
-            uniqueClientNames.add(invoiceData.client.toLowerCase());
-          });
-          
-          // Add new clients that don't exist yet
-          uniqueClientNames.forEach((clientNameLower) => {
-            const clientExists = clients.some(
-              (c) => c.name.toLowerCase() === clientNameLower
-            );
+          if (result.success && result.data.length > 0) {
+            // Collect unique client names from CSV
+            const uniqueClientNames = new Set<string>();
+            result.data.forEach((invoiceData) => {
+              uniqueClientNames.add(invoiceData.client.toLowerCase());
+            });
             
-            if (!clientExists) {
-              // Find the original case-sensitive name from the data
-              const originalName = result.data.find(
-                (inv) => inv.client.toLowerCase() === clientNameLower
-              )?.client || '';
+            // Add new clients that don't exist yet
+            uniqueClientNames.forEach((clientNameLower) => {
+              const clientExists = clients.some(
+                (c) => c.name.toLowerCase() === clientNameLower
+              );
               
-              // Add new client from invoice data
-              addClient({
-                name: originalName,
-                email: '', // CSV doesn't have email, can be added later
-                phone: '', // CSV doesn't have phone, can be added later
-              });
-            }
-          });
-          
-          // Check for duplicates and add only new invoices
-          result.data.forEach((invoiceData) => {
-            // Check if invoice with same number already exists
-            const isDuplicate = allInvoices.some(
-              (existingInv) => existingInv.number.toLowerCase() === invoiceData.number.toLowerCase()
-            );
+              if (!clientExists) {
+                // Find the original case-sensitive name from the data
+                const originalName = result.data.find(
+                  (inv) => inv.client.toLowerCase() === clientNameLower
+                )?.client || '';
+                
+                // Add new client from invoice data
+                addClient({
+                  name: originalName,
+                  email: '', // CSV doesn't have email, can be added later
+                  phone: '', // CSV doesn't have phone, can be added later
+                });
+              }
+            });
             
-            if (isDuplicate) {
-              // Skip duplicate
-              totalSkipped++;
-              duplicates.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
-            } else {
-              // Add new invoice
-              addInvoice(invoiceData);
-              totalImported++;
-              newOnes.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
-            }
-          });
-        }
+            // Check for duplicates and add only new invoices
+            result.data.forEach((invoiceData) => {
+              // Check if invoice with same number already exists
+              const isDuplicate = allInvoices.some(
+                (existingInv) => existingInv.number.toLowerCase() === invoiceData.number.toLowerCase()
+              );
+              
+              if (isDuplicate) {
+                // Skip duplicate
+                totalSkipped++;
+                duplicates.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
+              } else {
+                // Add new invoice
+                addInvoice(invoiceData);
+                totalImported++;
+                newOnes.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
+              }
+            });
+          }
 
-        if (result.errors.length > 0) {
-          allErrors.push(`${file.name}: ${result.errors.join(', ')}`);
+          if (result.errors.length > 0) {
+            allErrors.push(`${file.name}: ${result.errors.join(', ')}`);
+          }
+        } else if (fileType === 'clients') {
+          // Parse client CSV file
+          const result = await parseClientCSVFile(file.file);
+
+          if (result.success && result.data.length > 0) {
+            // Check for duplicates and add only new clients
+            result.data.forEach((clientData) => {
+              // Check if client with same name already exists (case-insensitive)
+              const isDuplicate = clients.some(
+                (existingClient) => existingClient.name.toLowerCase() === clientData.name.toLowerCase()
+              );
+              
+              if (isDuplicate) {
+                // Skip duplicate
+                totalSkipped++;
+                duplicateClientNames.push(clientData.name);
+              } else {
+                // Add new client
+                addClient({
+                  name: clientData.name,
+                  email: clientData.email || '',
+                  phone: clientData.phone || '',
+                  address: clientData.address,
+                  taxId: clientData.taxId,
+                });
+                totalImported++;
+                newClientNames.push(clientData.name);
+              }
+            });
+          }
+
+          if (result.errors.length > 0) {
+            allErrors.push(`${file.name}: ${result.errors.join(', ')}`);
+          }
         }
 
         // Update progress
@@ -159,17 +202,29 @@ export default function CsvUploadPage() {
       setErrorMessages(allErrors);
       setDuplicateInvoices(duplicates);
       setNewInvoices(newOnes);
+      setDuplicateClients(duplicateClientNames);
+      setNewClients(newClientNames);
 
       if (totalImported > 0 || totalSkipped > 0) {
         setImportStatus('success');
         
         let message = '';
-        if (totalImported > 0 && totalSkipped > 0) {
-          message = `Importuota ${totalImported} naujų sąskaitų. Praleista ${totalSkipped} dublikatų.`;
-        } else if (totalImported > 0) {
-          message = `Sėkmingai importuota ${totalImported} sąskaitų`;
-        } else {
-          message = `Visos sąskaitos (${totalSkipped}) jau egzistuoja sistemoje`;
+        if (fileType === 'invoices') {
+          if (totalImported > 0 && totalSkipped > 0) {
+            message = `Importuota ${totalImported} naujų sąskaitų. Praleista ${totalSkipped} dublikatų.`;
+          } else if (totalImported > 0) {
+            message = `Sėkmingai importuota ${totalImported} sąskaitų`;
+          } else {
+            message = `Visos sąskaitos (${totalSkipped}) jau egzistuoja sistemoje`;
+          }
+        } else if (fileType === 'clients') {
+          if (totalImported > 0 && totalSkipped > 0) {
+            message = `Importuota ${totalImported} naujų klientų. Praleista ${totalSkipped} dublikatų.`;
+          } else if (totalImported > 0) {
+            message = `Sėkmingai importuota ${totalImported} klientų`;
+          } else {
+            message = `Visi klientai (${totalSkipped}) jau egzistuoja sistemoje`;
+          }
         }
         
         addToast({
@@ -182,7 +237,9 @@ export default function CsvUploadPage() {
         addToast({
           type: 'error',
           title: 'Įkėlimas nesėkmingas',
-          message: 'Nepavyko importuoti jokių sąskaitų. Patikrinkite failo formatą.',
+          message: fileType === 'invoices' 
+            ? 'Nepavyko importuoti jokių sąskaitų. Patikrinkite failo formatą.'
+            : 'Nepavyko importuoti jokių klientų. Patikrinkite failo formatą.',
         });
       }
     } catch (error) {
@@ -253,20 +310,19 @@ export default function CsvUploadPage() {
         <CardContent>
           {/* File Type Selection - Always visible */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pasirinkite failo tipą
-            </label>
-            <select
+            <Select
+              label="Pasirinkite failo tipą"
               value={fileType}
-              onChange={(e) => setFileType(e.target.value)}
-              className="w-full px-3 py-2 border border-neutral-border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(value) => setFileType(value)}
+              options={[
+                { value: '', label: 'Pasirinkite...' },
+                { value: 'invoices', label: 'Sąskaitos' },
+                { value: 'clients', label: 'Klientai' },
+              ]}
+              placeholder="Pasirinkite..."
               disabled={importStatus === 'importing'}
-            >
-              <option value="">Pasirinkite...</option>
-              <option value="invoices">Sąskaitos</option>
-              <option value="clients">Klientai</option>
-              <option value="products">Produktai</option>
-            </select>
+              fullWidth
+            />
             <p className="text-xs text-gray-500 mt-1">PVZ: Pasirinkite "Sąskaitos" jei importuojate sąskaitų duomenis</p>
           </div>
 
@@ -354,7 +410,7 @@ export default function CsvUploadPage() {
                 {/* Summary */}
                 <div className="text-sm text-gray-600 mb-3 space-y-1">
                   {importedCount > 0 && (
-                    <p>✓ Sėkmingai importuota <strong>{importedCount}</strong> naujų sąskaitų</p>
+                    <p>✓ Sėkmingai importuota <strong>{importedCount}</strong> {fileType === 'invoices' ? 'naujų sąskaitų' : 'naujų klientų'}</p>
                   )}
                   {skippedCount > 0 && (
                     <p>⚠ Praleista <strong>{skippedCount}</strong> dublikatų (jau egzistuoja sistemoje)</p>
@@ -362,7 +418,7 @@ export default function CsvUploadPage() {
                 </div>
 
                 {/* New Invoices */}
-                {newInvoices.length > 0 && (
+                {fileType === 'invoices' && newInvoices.length > 0 && (
                   <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
                     <p className="text-sm font-medium text-green-900 mb-2">Importuotos naujos sąskaitos:</p>
                     <ul className="text-xs text-green-800 space-y-1 max-h-40 overflow-y-auto">
@@ -376,8 +432,23 @@ export default function CsvUploadPage() {
                   </div>
                 )}
 
+                {/* New Clients */}
+                {fileType === 'clients' && newClients.length > 0 && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
+                    <p className="text-sm font-medium text-green-900 mb-2">Importuoti nauji klientai:</p>
+                    <ul className="text-xs text-green-800 space-y-1 max-h-40 overflow-y-auto">
+                      {newClients.slice(0, 10).map((client, i) => (
+                        <li key={i}>✓ {client}</li>
+                      ))}
+                      {newClients.length > 10 && (
+                        <li className="font-medium">+ dar {newClients.length - 10} klientų...</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
                 {/* Duplicate Invoices */}
-                {duplicateInvoices.length > 0 && (
+                {fileType === 'invoices' && duplicateInvoices.length > 0 && (
                   <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
                     <p className="text-sm font-medium text-yellow-900 mb-2">Praleistos sąskaitos (dublikatai):</p>
                     <ul className="text-xs text-yellow-800 space-y-1 max-h-40 overflow-y-auto">
@@ -386,6 +457,21 @@ export default function CsvUploadPage() {
                       ))}
                       {duplicateInvoices.length > 10 && (
                         <li className="font-medium">+ dar {duplicateInvoices.length - 10} dublikatų...</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Duplicate Clients */}
+                {fileType === 'clients' && duplicateClients.length > 0 && (
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-sm font-medium text-yellow-900 mb-2">Praleisti klientai (dublikatai):</p>
+                    <ul className="text-xs text-yellow-800 space-y-1 max-h-40 overflow-y-auto">
+                      {duplicateClients.slice(0, 10).map((client, i) => (
+                        <li key={i}>⚠ {client}</li>
+                      ))}
+                      {duplicateClients.length > 10 && (
+                        <li className="font-medium">+ dar {duplicateClients.length - 10} dublikatų...</li>
                       )}
                     </ul>
                   </div>
@@ -419,6 +505,8 @@ export default function CsvUploadPage() {
                       setErrorMessages([]);
                       setDuplicateInvoices([]);
                       setNewInvoices([]);
+                      setDuplicateClients([]);
+                      setNewClients([]);
                     }}
                   >
                     Įkelti kitą failą
