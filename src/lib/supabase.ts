@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration
-// Using development branch for shared data
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://stbhwafhrjisprjtzypr.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0Ymh3YWZocmppc3ByanR6eXByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3Nzg0NDgsImV4cCI6MjA3NjM1NDQ0OH0.CQHv3t5XYjZTwgCOxq8Oko28XNP4hoo0HVwA-esVKH4';
+// Using figma project for shared data
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://ddtdyacwcaihupjkswoy.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkdGR5YWN3Y2FpaHVwamtzd295Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzcxMzgsImV4cCI6MjA3ODk1MzEzOH0.quWx9OAh1GCA_CVlkwPNMfhSksNhurdo6XUvpbWY0jk';
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.warn('⚠️ Missing Supabase environment variables');
