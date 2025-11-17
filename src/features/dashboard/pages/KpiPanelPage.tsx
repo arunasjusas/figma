@@ -31,6 +31,11 @@ export default function KpiPanelPage() {
     const pradelstaCount = pradelstaInvoices.length;
     const pradelstaTotal = pradelstaInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
+    // Terminas nepasibaigęs - all invoices with PENDING status
+    const pendingInvoices = activeInvoices.filter((inv) => inv.status === 'PENDING');
+    const pendingCount = pendingInvoices.length;
+    const pendingTotal = pendingInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+
     // Past due - invoices that are UNPAID AND past their due date
     const pastDueInvoices = pradelstaInvoices.filter((inv) => {
       const dueDate = new Date(inv.dueDate);
@@ -61,6 +66,8 @@ export default function KpiPanelPage() {
       totalInvoices,
       pradelstaCount,
       pradelstaTotal,
+      pendingCount,
+      pendingTotal,
       activeCount,
       pastDueCount,
       averageDelay,
@@ -113,9 +120,9 @@ export default function KpiPanelPage() {
           value={kpiData.totalInvoices.toString()}
         />
         <KpiCard
-          title="Vėluojančios"
-          subtitle={`${formatCurrency(kpiData.pradelstaTotal)}`}
-          value={`${kpiData.pradelstaCount} vnt.`}
+          title="Terminas nepasibaigęs"
+          subtitle={`${formatCurrency(kpiData.pendingTotal)}`}
+          value={`${kpiData.pendingCount} vnt.`}
         />
         <KpiCard
           title="Aktyvių sąskaitų skaičius"
