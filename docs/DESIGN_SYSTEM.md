@@ -196,7 +196,7 @@ box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 ```
 - Background: `#0A61C4`
 - Text: White
-- Hover: `#084FA3`
+- Hover: White background with `#0A61C4` border and blue text
 - Padding: `h-10 px-4` (medium)
 - Border radius: `6px`
 
@@ -206,10 +206,10 @@ box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   Pridėti klientą
 </Button>
 ```
-- Background: White
-- Border: `#E5E7EB`
+- Background: Light gray (`#F3F4F6`)
 - Text: `#111827`
-- Hover: Light gray background
+- Hover: White background with `#E5E7EB` border
+- Border radius: `6px`
 
 #### Outline Button
 ```tsx
