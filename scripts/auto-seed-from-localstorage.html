@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Seed to Supabase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0A61C4;
+        }
+        button {
+            background: #0A61C4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 20px 0;
+            width: 100%;
+        }
+        button:hover {
+            background: #084a9a;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Auto Seed to Supabase</h1>
+        
+        <div class="status info">
+            <strong>Instructions:</strong><br>
+            1. Open this page on <strong>https://figma-xi-seven.vercel.app/</strong> (same domain)<br>
+            2. Make sure you've applied the SQL migration first<br>
+            3. Click the button below to automatically export and seed your data
+        </div>
+        
+        <button id="seedButton" onclick="seedToSupabase()">🚀 Export & Seed to Supabase</button>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ddtdyacwcaihupjkswoy.supabase.co';
+        const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkdGR5YWN3Y2FpaHVwamtzd295Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzM3NzEzOCwiZXhwIjoyMDc4OTUzMTM4fQ.2iAhhev0QfPve8jg6dXAAoROCxcx9zdKZ_LjZoZ39Rg';
+
+        async function seedToSupabase() {
+            const button = document.getElementById('seedButton');
+            const statusDiv = document.getElementById('status');
+            
+            button.disabled = true;
+            statusDiv.innerHTML = '<div class="status info">⏳ Reading your localStorage data...</div>';
+            
+            try {
+                // Read from localStorage
+                const invoiceStorage = localStorage.getItem('invoice-storage');
+                const clientStorage = localStorage.getItem('client-storage');
+                
+                let invoices = [];
+                let clients = [];
+                
+                if (invoiceStorage) {
+                    try {
+                        const parsed = JSON.parse(invoiceStorage);
+                        invoices = parsed.state?.invoices || [];
+                    } catch (e) {
+                        throw new Error('Failed to parse invoices: ' + e.message);
+                    }
+                }
+                
+                if (clientStorage) {
+                    try {
+                        const parsed = JSON.parse(clientStorage);
+                        clients = parsed.state?.clients || [];
+                    } catch (e) {
+                        throw new Error('Failed to parse clients: ' + e.message);
+                    }
+                }
+                
+                if (invoices.length === 0 && clients.length === 0) {
+                    statusDiv.innerHTML = '<div class="status warning">⚠️ No data found in localStorage. Make sure you\'re on https://figma-xi-seven.vercel.app/</div>';
+                    button.disabled = false;
+                    return;
+                }
+                
+                statusDiv.innerHTML = `
+                    <div class="status info">
+                        📊 Found:<br>
+                        • ${invoices.length} invoices (${invoices.filter(i => !i.deleted).length} active, ${invoices.filter(i => i.deleted).length} deleted)<br>
+                        • ${clients.length} clients<br><br>
+                        ⏳ Seeding to Supabase...
+                    </div>
+                `;
+                
+                // Seed invoices
+                if (invoices.length > 0) {
+                    const invoicesToInsert = invoices.map((invoice) => ({
+                        id: invoice.id,
+                        number: invoice.number,
+                        date: invoice.date,
+                        client: invoice.client,
+                        amount: invoice.amount.toString(),
+                        status: invoice.status,
+                        due_date: invoice.dueDate,
+                        paid_amount: invoice.paidAmount?.toString() || '0',
+                        attachment_name: invoice.attachment?.name || null,
+                        attachment_url: invoice.attachment?.url || null,
+                        notes: invoice.notes || null,
+                        deleted: invoice.deleted || false,
+                        deleted_at: invoice.deletedAt || null,
+                    }));
+                    
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_SERVICE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'resolution=merge-duplicates',
+                        },
+                        body: JSON.stringify(invoicesToInsert),
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.text();
+                        throw new Error(`Failed to seed invoices: ${error}`);
+                    }
+                }
+                
+                // Seed clients
+                if (clients.length > 0) {
+                    const clientsToInsert = clients.map((client) => ({
+                        id: client.id,
+                        name: client.name,
+                        email: client.email,
+                        phone: client.phone,
+                        address: client.address || null,
+                        tax_id: client.taxId || null,
+                        notes: client.notes || null,
+                    }));
+                    
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/clients`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_SERVICE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'resolution=merge-duplicates',
+                        },
+                        body: JSON.stringify(clientsToInsert),
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.text();
+                        throw new Error(`Failed to seed clients: ${error}`);
+                    }
+                }
+                
+                statusDiv.innerHTML = `
+                    <div class="status success">
+                        ✅ <strong>Success!</strong><br><br>
+                        📄 Seeded ${invoices.length} invoices<br>
+                        📦 Seeded ${clients.length} clients<br><br>
+                        🎉 Everyone visiting <code>https://figma-xi-seven.vercel.app/</code> will now see the same data!<br><br>
+                        ✅ Real-time sync is enabled - all changes will appear instantly for all users.
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ <strong>Error:</strong> ${error.message}<br><br>
+                        <strong>Possible solutions:</strong><br>
+                        1. Make sure you applied the SQL migration first<br>
+                        2. Make sure you're on https://figma-xi-seven.vercel.app/<br>
+                        3. Check browser console for more details
+                    </div>
+                `;
+            } finally {
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
+
