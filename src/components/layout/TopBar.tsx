@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Menu, Plus, UserPlus } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { AddClientModal } from '@/components/shared/AddClientModal';
 import { AddInvoiceModal } from '@/components/shared/AddInvoiceModal';
@@ -66,24 +66,22 @@ export function TopBar({ title: defaultTitle = 'Sąskaitų Sistema', onMenuClick
           {/* Changed from showActions to shouldShowActions */}
           {shouldShowActions && (
             <div className="flex items-center gap-3">
-              <Button 
-                variant="primary" 
-                size={isMobile ? 'sm' : 'md'}
+              <AnimatedButton 
+                variant="primary"
                 onClick={handleNewInvoice}
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="w-4 h-4" />
                 {!isMobile && 'Nauja sąskaita'}
                 {isMobile && 'Sąskaita'}
-              </Button>
+              </AnimatedButton>
               {!isMobile && (
-                <Button 
-                  variant="outline" 
-                  size="md"
+                <AnimatedButton 
+                  variant="secondary"
                   onClick={handleAddClient}
                 >
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Pridėti klientą
-                </Button>
+                  <UserPlus className="w-4 h-4" />
+                  Naujas klientas
+                </AnimatedButton>
               )}
             </div>
           )}
