@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
 
 export interface Client {
   id: string;
@@ -14,123 +14,159 @@ export interface Client {
 
 interface ClientStore {
   clients: Client[];
-  addClient: (client: Omit<Client, 'id' | 'createdAt'>) => void;
-  updateClient: (id: string, client: Partial<Client>) => void;
-  deleteClient: (id: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  addClient: (client: Omit<Client, 'id' | 'createdAt'>) => Promise<void>;
+  updateClient: (id: string, client: Partial<Client>) => Promise<void>;
+  deleteClient: (id: string) => Promise<void>;
   getClientById: (id: string) => Client | undefined;
+  fetchClients: () => Promise<void>;
+  subscribeToChanges: () => () => void;
 }
 
-// Mock clients data
-const mockClients: Client[] = [
-  {
-    id: '1',
-    name: 'MB Balttech',
-    email: 'info@balttech.lt',
-    phone: '+370 600 11111',
-    address: 'Vilnius, Gedimino pr. 1',
-    taxId: '123456789',
-    createdAt: '2025-01-01',
-  },
-  {
-    id: '2',
-    name: 'UAB Ratai',
-    email: 'kontaktai@ratai.lt',
-    phone: '+370 600 22222',
-    address: 'Kaunas, Laisvės al. 10',
-    taxId: '987654321',
-    createdAt: '2025-01-15',
-  },
-  {
-    id: '3',
-    name: 'UAB Sodas',
-    email: 'info@sodas.lt',
-    phone: '+370 600 33333',
-    address: 'Klaipėda, Taikos pr. 5',
-    createdAt: '2025-02-01',
-  },
-  {
-    id: '4',
-    name: 'MB Technika',
-    email: 'technika@technika.lt',
-    phone: '+370 600 44444',
-    createdAt: '2025-02-10',
-  },
-  {
-    id: '5',
-    name: 'UAB Statyba',
-    email: 'statyba@statyba.lt',
-    phone: '+370 600 55555',
-    address: 'Šiauliai, Tilžės g. 20',
-    taxId: '555666777',
-    createdAt: '2025-03-01',
-  },
-  {
-    id: '6',
-    name: 'MB Dizainas',
-    email: 'hello@dizainas.lt',
-    phone: '+370 600 66666',
-    createdAt: '2025-03-15',
-  },
-];
+/**
+ * Convert database row to Client type
+ */
+const dbRowToClient = (row: any): Client => ({
+  id: row.id,
+  name: row.name,
+  email: row.email,
+  phone: row.phone,
+  address: row.address || undefined,
+  taxId: row.tax_id || undefined,
+  notes: row.notes || undefined,
+  createdAt: row.created_at ? new Date(row.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+});
 
 /**
- * Get initial clients from localStorage or use mock data
+ * Convert Client to database row
  */
-const getInitialClients = (): Client[] => {
-  try {
-    const stored = localStorage.getItem('client-storage');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed.state?.clients || mockClients;
+const clientToDbRow = (client: Partial<Client>) => ({
+  name: client.name,
+  email: client.email,
+  phone: client.phone,
+  address: client.address || null,
+  tax_id: client.taxId || null,
+  notes: client.notes || null,
+});
+
+/**
+ * Client store using Zustand with Supabase backend
+ * All users see and share the same data with real-time updates
+ */
+export const useClientStore = create<ClientStore>()((set, get) => ({
+  clients: [],
+  isLoading: true,
+  error: null,
+
+  fetchClients: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      set({
+        clients: (data || []).map(dbRowToClient),
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error('Failed to fetch clients:', error);
+      set({
+        error: error instanceof Error ? error.message : 'Failed to fetch clients',
+        isLoading: false,
+      });
     }
-  } catch (error) {
-    console.error('Failed to load clients from localStorage:', error);
-  }
-  return mockClients;
-};
+  },
 
-/**
- * Client store using Zustand with localStorage persistence
- * Manages client state and operations
- */
-export const useClientStore = create<ClientStore>()(
-  persist(
-    (set, get) => ({
-      clients: getInitialClients(),
+  subscribeToChanges: () => {
+    const channel = supabase
+      .channel('clients-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'clients',
+        },
+        async () => {
+          // Refetch clients when any change occurs
+          await get().fetchClients();
+        }
+      )
+      .subscribe();
 
-  addClient: (client) => {
-    const newClient: Client = {
-      ...client,
-      id: `client-${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0],
+    return () => {
+      supabase.removeChannel(channel);
     };
-    set((state) => ({
-      clients: [newClient, ...state.clients],
-    }));
   },
 
-  updateClient: (id, updatedData) => {
-    set((state) => ({
-      clients: state.clients.map((client) =>
-        client.id === id ? { ...client, ...updatedData } : client
-      ),
-    }));
+  addClient: async (client) => {
+    try {
+      const newClient: Client = {
+        ...client,
+        id: `client-${Date.now()}`,
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+
+      const { error } = await supabase
+        .from('clients')
+        .insert({
+          id: newClient.id,
+          ...clientToDbRow(newClient),
+        });
+
+      if (error) throw error;
+
+      // Real-time subscription will update the list automatically
+      await get().fetchClients();
+    } catch (error) {
+      console.error('Failed to add client:', error);
+      throw error;
+    }
   },
 
-  deleteClient: (id) => {
-    set((state) => ({
-      clients: state.clients.filter((client) => client.id !== id),
-    }));
+  updateClient: async (id, updatedData) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({
+          ...clientToDbRow(updatedData),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Real-time subscription will update the list automatically
+      await get().fetchClients();
+    } catch (error) {
+      console.error('Failed to update client:', error);
+      throw error;
+    }
+  },
+
+  deleteClient: async (id) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Real-time subscription will update the list automatically
+      await get().fetchClients();
+    } catch (error) {
+      console.error('Failed to delete client:', error);
+      throw error;
+    }
   },
 
   getClientById: (id) => {
     return get().clients.find((client) => client.id === id);
   },
-    }),
-    {
-      name: 'client-storage', // localStorage key
-      version: 1,
-    }
-  )
-);
-
+}));

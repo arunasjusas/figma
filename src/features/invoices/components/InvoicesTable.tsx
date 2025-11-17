@@ -77,9 +77,22 @@ export function InvoicesTable() {
     return filtered;
   }, [allInvoices, amountFrom, amountTo, searchNumber, searchClient, status]);
 
-  const handleDelete = (id: string, invoiceNumber: string) => {
+  const handleDelete = async (id: string, invoiceNumber: string) => {
     if (window.confirm(`Ar tikrai norite ištrinti sąskaitą ${invoiceNumber}?`)) {
-      deleteInvoice(id);
+      try {
+        await deleteInvoice(id);
+        addToast({
+          type: 'success',
+          title: 'Ištrinta',
+          message: 'Sąskaita sėkmingai ištrinta.',
+        });
+      } catch (error) {
+        addToast({
+          type: 'error',
+          title: 'Klaida',
+          message: 'Nepavyko ištrinti sąskaitos.',
+        });
+      }
     }
   };
 
@@ -171,16 +184,24 @@ export function InvoicesTable() {
     setStatusChangeInvoice({ ...statusChangeInvoice, status: uppercaseStatus });
   };
 
-  const handleSaveStatusChange = () => {
+  const handleSaveStatusChange = async () => {
     if (!statusChangeInvoice) return;
     
-    updateInvoice(statusChangeInvoice.id, { status: statusChangeInvoice.status });
-    addToast({
-      type: 'success',
-      title: 'Statusas atnaujintas',
-      message: 'Sąskaitos statusas sėkmingai pakeistas.',
-    });
-    handleCloseStatusModal();
+    try {
+      await updateInvoice(statusChangeInvoice.id, { status: statusChangeInvoice.status });
+      addToast({
+        type: 'success',
+        title: 'Statusas atnaujintas',
+        message: 'Sąskaitos statusas sėkmingai pakeistas.',
+      });
+      handleCloseStatusModal();
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Klaida',
+        message: 'Nepavyko atnaujinti sąskaitos statuso.',
+      });
+    }
   };
 
   const renderModals = () => {

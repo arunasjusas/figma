@@ -116,12 +116,16 @@ export default function NewInvoicePage() {
       notes: formData.notes || undefined,
     };
 
-    addInvoice(newInvoice);
-
-    setIsSubmitting(false);
-
-    // Navigate back to invoices list
-    navigate('/invoices');
+    try {
+      await addInvoice(newInvoice);
+      setIsSubmitting(false);
+      // Navigate back to invoices list
+      navigate('/invoices');
+    } catch (error) {
+      setIsSubmitting(false);
+      // Handle error (you might want to show a toast here)
+      console.error('Failed to create invoice:', error);
+    }
   };
 
   const clientOptions = clients.map((client) => ({

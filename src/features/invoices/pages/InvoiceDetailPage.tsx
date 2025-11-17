@@ -25,10 +25,14 @@ export default function InvoiceDetailPage() {
     'Gerbiamas kliente,\n\nPrimename apie jūsų sąskaitą. Prašome apmokėti iki nurodyto termino.\n\nAčiū už bendradarbiavimą!'
   );
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (invoice && window.confirm(`Ar tikrai norite ištrinti sąskaitą ${invoice.number}?`)) {
-      deleteInvoice(invoice.id);
-      navigate('/invoices');
+      try {
+        await deleteInvoice(invoice.id);
+        navigate('/invoices');
+      } catch (error) {
+        console.error('Failed to delete invoice:', error);
+      }
     }
   };
 

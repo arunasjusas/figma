@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { useInvoiceStore } from './store/invoiceStore';
+import { useClientStore } from './store/clientStore';
 import { AppLayout } from './components/layout/AppLayout';
 import { ToastContainer } from './components/ui/Toast';
 
@@ -10,7 +12,7 @@ import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/pages/ResetPasswordPage';
 
 // Feature pages (lazy loaded)
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 
 const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage'));
 const KpiPanelPage = lazy(() => import('./features/dashboard/pages/KpiPanelPage'));
@@ -51,11 +53,41 @@ function LoadingFallback() {
 }
 
 /**
+ * Data initialization component
+ * Fetches data and subscribes to real-time changes
+ */
+function DataInitializer() {
+  const fetchInvoices = useInvoiceStore((state) => state.fetchInvoices);
+  const subscribeToInvoiceChanges = useInvoiceStore((state) => state.subscribeToChanges);
+  const fetchClients = useClientStore((state) => state.fetchClients);
+  const subscribeToClientChanges = useClientStore((state) => state.subscribeToChanges);
+
+  useEffect(() => {
+    // Fetch initial data
+    fetchInvoices();
+    fetchClients();
+
+    // Subscribe to real-time changes
+    const unsubscribeInvoices = subscribeToInvoiceChanges();
+    const unsubscribeClients = subscribeToClientChanges();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      unsubscribeInvoices();
+      unsubscribeClients();
+    };
+  }, [fetchInvoices, subscribeToInvoiceChanges, fetchClients, subscribeToClientChanges]);
+
+  return null;
+}
+
+/**
  * Main App component with routing
  */
 function App() {
   return (
     <BrowserRouter>
+      <DataInitializer />
       <ToastContainer />
       <Routes>
         {/* Public routes */}
