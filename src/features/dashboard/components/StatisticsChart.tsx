@@ -88,6 +88,7 @@ export function StatisticsChart() {
           areas={areas}
           xAxisKey="month"
           height={300}
+          showLegend={true}
         />
       </CardContent>
     </Card>
