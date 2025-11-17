@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { CheckCircle, XCircle, Download, X } from 'lucide-react';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { parseCSVFile, generateSampleCSV, parseClientCSVFile } from '@/lib/csvParser';
+import { parseCSVFile, generateSampleCSV, generateClientSampleCSV, parseClientCSVFile } from '@/lib/csvParser';
 import { useInvoiceStore } from '@/store/invoiceStore';
 import { useClientStore } from '@/store/clientStore';
 import { useToastStore } from '@/components/ui/Toast';
@@ -254,12 +254,15 @@ export default function CsvUploadPage() {
   };
 
   const handleDownloadSample = () => {
-    const csv = generateSampleCSV();
+    if (!fileType) return;
+    
+    const csv = fileType === 'clients' ? generateClientSampleCSV() : generateSampleCSV();
+    const filename = fileType === 'clients' ? 'klientai_pavyzdys.csv' : 'saskaitos_pavyzdys.csv';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'saskaitos_pavyzdys.csv';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -332,49 +335,48 @@ export default function CsvUploadPage() {
             multiple={true}
           />
 
+          {/* File List */}
           {selectedFiles.length > 0 && (
-            <div className="mt-6 space-y-4">
-              {/* File List */}
-              <div className="space-y-2">
-                {selectedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {file.type === 'text/csv' ? 'CSV' : file.type === 'application/vnd.ms-excel' || file.type.includes('spreadsheet') ? 'Excel' : file.type}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => removeFile(index)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                      disabled={importStatus === 'importing'}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+            <div className="mt-6 space-y-2">
+              {selectedFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {file.type === 'text/csv' ? 'CSV' : file.type === 'application/vnd.ms-excel' || file.type.includes('spreadsheet') ? 'Excel' : file.type}
+                    </p>
                   </div>
-                ))}
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  variant="primary"
-                  onClick={handleImport}
-                  disabled={importStatus === 'importing' || !fileType}
-                  className="flex-1 md:flex-none"
-                >
-                  {importStatus === 'importing' ? 'Importuojama...' : 'Pradėti importą'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDownloadSample}
-                  disabled={importStatus === 'importing'}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Atsisiųsti pavyzdį
-                </Button>
-              </div>
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                    disabled={importStatus === 'importing'}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
+
+          {/* Action Buttons - Always visible */}
+          <div className="mt-6 flex gap-3">
+            <Button
+              variant="primary"
+              onClick={handleImport}
+              disabled={importStatus === 'importing' || !fileType || selectedFiles.length === 0}
+              className="flex-1 md:flex-none"
+            >
+              {importStatus === 'importing' ? 'Importuojama...' : 'Pradėti importą'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDownloadSample}
+              disabled={importStatus === 'importing' || !fileType}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Atsisiųsti pavyzdį
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

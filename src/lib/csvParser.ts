@@ -160,7 +160,7 @@ function isValidDate(dateString: string): boolean {
 }
 
 /**
- * Generate sample CSV content for download
+ * Generate sample CSV content for invoices download
  */
 export function generateSampleCSV(): string {
   const header = 'number,date,client,amount,status,dueDate,notes';
@@ -168,6 +168,21 @@ export function generateSampleCSV(): string {
     'SF-101,2025-10-01,MB Balttech,250.00,UNPAID,2025-11-01,',
     'SF-102,2025-10-02,UAB Ratai,450.00,PAID,2025-11-02,',
     'SF-103,2025-10-03,UAB Sodas,1500.00,PENDING,2025-12-15,Papildoma informacija',
+  ];
+
+  return [header, ...examples].join('\n');
+}
+
+/**
+ * Generate sample CSV content for clients download
+ */
+export function generateClientSampleCSV(): string {
+  const header = 'name,email,phone,address,taxId';
+  const examples = [
+    'MB Balttech,info@balttech.lt,+370 600 11111,Vilnius Gedimino pr. 1,123456789',
+    'UAB Ratai,kontaktai@ratai.lt,+370 600 22222,Kaunas Laisvės al. 10,987654321',
+    'UAB Sodas,info@sodas.lt,+370 600 33333,Klaipėda Taikos pr. 5,',
+    'MB Technika,technika@technika.lt,+370 600 44444,,',
   ];
 
   return [header, ...examples].join('\n');
