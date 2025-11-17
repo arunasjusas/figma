@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { mockInvoices, type Invoice } from '@/lib/mockData';
 
 interface InvoiceStore {
@@ -15,29 +14,12 @@ interface InvoiceStore {
 }
 
 /**
- * Get initial invoices from localStorage or use mock data
- */
-const getInitialInvoices = (): Invoice[] => {
-  try {
-    const stored = localStorage.getItem('invoice-storage');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed.state?.invoices || mockInvoices;
-    }
-  } catch (error) {
-    console.error('Failed to load invoices from localStorage:', error);
-  }
-  return mockInvoices;
-};
-
-/**
- * Invoice store using Zustand with localStorage persistence
+ * Invoice store using Zustand
+ * Always uses mock data as source of truth - all users see the same data
  * Manages invoice state and operations with soft delete support
  */
-export const useInvoiceStore = create<InvoiceStore>()(
-  persist(
-    (set, get) => ({
-      invoices: getInitialInvoices(),
+export const useInvoiceStore = create<InvoiceStore>()((set, get) => ({
+  invoices: mockInvoices,
 
   addInvoice: (invoice) => {
     const newInvoice: Invoice = {
@@ -100,11 +82,5 @@ export const useInvoiceStore = create<InvoiceStore>()(
   getDeletedInvoices: () => {
     return get().invoices.filter((invoice) => invoice.deleted);
   },
-    }),
-    {
-      name: 'invoice-storage', // localStorage key
-      version: 1,
-    }
-  )
-);
+}));
 

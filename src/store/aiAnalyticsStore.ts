@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { useInvoiceStore } from './invoiceStore';
 import { getAllMonthNames } from '@/lib/utils';
 
@@ -105,34 +104,12 @@ const generateMessagesFromInvoices = (): AIMessage[] => {
 };
 
 /**
- * Get initial messages from localStorage or generate from invoices
- */
-const getInitialMessages = (): AIMessage[] => {
-  try {
-    const stored = localStorage.getItem('ai-analytics-storage');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      const storedMessages = parsed.state?.messages;
-      if (storedMessages && storedMessages.length > 0) {
-        return storedMessages;
-      }
-    }
-  } catch (error) {
-    console.error('Failed to load AI messages from localStorage:', error);
-  }
-  
-  // Generate from invoices if no stored data
-  return generateMessagesFromInvoices();
-};
-
-/**
- * AI Analytics store using Zustand with localStorage persistence
+ * AI Analytics store using Zustand
+ * Always generates messages from current invoices - all users see the same data
  * Tracks AI sequence messages and calculates analytics
  */
-export const useAIAnalyticsStore = create<AIAnalyticsStore>()(
-  persist(
-    (set, _get) => ({
-      messages: getInitialMessages(),
+export const useAIAnalyticsStore = create<AIAnalyticsStore>()((set, _get) => ({
+  messages: generateMessagesFromInvoices(),
 
       addMessage: (message) => {
         const newMessage: AIMessage = {
@@ -224,11 +201,6 @@ export const useAIAnalyticsStore = create<AIAnalyticsStore>()(
         
         return activityData;
       },
-    }),
-    {
-      name: 'ai-analytics-storage',
-      version: 1,
-    }
-  )
+    })
 );
 
