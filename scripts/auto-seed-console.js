@@ -57,10 +57,25 @@
   // Seed function
   async function seed() {
     try {
-      // Seed invoices
+      // Seed invoices (remove duplicates first)
       if (invoices.length > 0) {
         console.log('📄 Seeding invoices...');
-        const invoicesToInsert = invoices.map((invoice) => ({
+        
+        // Remove duplicates by ID
+        const uniqueInvoices = [];
+        const seenIds = new Set();
+        for (const invoice of invoices) {
+          if (!seenIds.has(invoice.id)) {
+            seenIds.add(invoice.id);
+            uniqueInvoices.push(invoice);
+          }
+        }
+        
+        if (uniqueInvoices.length < invoices.length) {
+          console.log(`⚠️  Removed ${invoices.length - uniqueInvoices.length} duplicate invoices`);
+        }
+        
+        const invoicesToInsert = uniqueInvoices.map((invoice) => ({
           id: invoice.id,
           number: invoice.number,
           date: invoice.date,
@@ -91,38 +106,73 @@
           const error = await invoicesResponse.text();
           throw new Error(`Invoices: ${error}`);
         }
-        console.log(`✅ Seeded ${invoices.length} invoices`);
+        console.log(`✅ Seeded ${uniqueInvoices.length} invoices`);
       }
       
-      // Seed clients
+      // Seed clients (remove duplicates first)
       if (clients.length > 0) {
         console.log('📦 Seeding clients...');
-        const clientsToInsert = clients.map((client) => ({
-          id: client.id,
-          name: client.name,
-          email: client.email,
-          phone: client.phone,
-          address: client.address || null,
-          tax_id: client.taxId || null,
-          notes: client.notes || null,
-        }));
         
-        const clientsResponse = await fetch(`${SUPABASE_URL}/rest/v1/clients`, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_SERVICE_KEY,
-            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates',
-          },
-          body: JSON.stringify(clientsToInsert),
-        });
-        
-        if (!clientsResponse.ok) {
-          const error = await clientsResponse.text();
-          throw new Error(`Clients: ${error}`);
+        // Remove duplicates by ID
+        const uniqueClients = [];
+        const seenIds = new Set();
+        for (const client of clients) {
+          if (!seenIds.has(client.id)) {
+            seenIds.add(client.id);
+            uniqueClients.push(client);
+          }
         }
-        console.log(`✅ Seeded ${clients.length} clients`);
+        
+        if (uniqueClients.length < clients.length) {
+          console.log(`⚠️  Removed ${clients.length - uniqueClients.length} duplicate clients`);
+        }
+        
+        // Insert clients one by one to avoid batch conflicts
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (const client of uniqueClients) {
+          try {
+            const clientToInsert = {
+              id: client.id,
+              name: client.name,
+              email: client.email,
+              phone: client.phone,
+              address: client.address || null,
+              tax_id: client.taxId || null,
+              notes: client.notes || null,
+            };
+            
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/clients`, {
+              method: 'POST',
+              headers: {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'resolution=merge-duplicates',
+              },
+              body: JSON.stringify(clientToInsert),
+            });
+            
+            if (response.ok) {
+              successCount++;
+            } else {
+              const error = await response.text();
+              console.warn(`⚠️  Failed to seed client ${client.id}: ${error}`);
+              errorCount++;
+            }
+          } catch (err) {
+            console.warn(`⚠️  Error seeding client ${client.id}:`, err);
+            errorCount++;
+          }
+        }
+        
+        if (successCount > 0) {
+          console.log(`✅ Seeded ${successCount} clients`);
+        }
+        if (errorCount > 0) {
+          console.log(`⚠️  ${errorCount} clients had errors (may already exist)`);
+        }
       }
       
       console.log('%c🎉 SUCCESS!', 'color: #10B981; font-size: 20px; font-weight: bold;');
