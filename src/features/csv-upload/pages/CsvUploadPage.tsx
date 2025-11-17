@@ -126,7 +126,7 @@ export default function CsvUploadPage() {
                 )?.client || '';
                 
                 // Add new client from invoice data
-                addClient({
+                await addClient({
                   name: originalName,
                   email: '', // CSV doesn't have email, can be added later
                   phone: '', // CSV doesn't have phone, can be added later
@@ -147,7 +147,7 @@ export default function CsvUploadPage() {
                 duplicates.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
               } else {
                 // Add new invoice
-                addInvoice(invoiceData);
+                await addInvoice(invoiceData);
                 totalImported++;
                 newOnes.push(`${invoiceData.number} (${invoiceData.client}, ${invoiceData.amount}€)`);
               }
@@ -175,7 +175,7 @@ export default function CsvUploadPage() {
                 duplicateClientNames.push(clientData.name);
               } else {
                 // Add new client
-                addClient({
+                await addClient({
                   name: clientData.name,
                   email: clientData.email || '',
                   phone: clientData.phone || '',
